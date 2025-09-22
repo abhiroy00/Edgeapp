@@ -1,0 +1,98 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# If using Django migrations cache
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.pyd
+
+# Python #
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtualenv #
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs and editors #
+.idea/
+.vscode/
+*.swp
+*~
+.project
+.pydevproject
+
+# Unit test / coverage reports #
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.coverage.*
+
+# Static & media #
+staticfiles/
+static/
+media/
+
+# MacOS #
+.DS_Store
+
+# Windows #
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# dotenv #
+.env
+.env.*
+
+# mypy #
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pytype #
+.pytype/
+
+# profiling #
+.prof
+
+# PyCharm #
+*.iml
+.idea/
