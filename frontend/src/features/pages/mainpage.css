@@ -1,0 +1,16 @@
+.main{
+    display: flex;
+    justify-content: space-between;
+    
+
+}
+.left-side-bar{
+    height: 670px;
+    width: 20%;
+    
+}
+.right-side-bar{
+    height: 670px;
+    width: 80%;
+    
+}
