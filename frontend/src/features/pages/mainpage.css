@@ -1,16 +1,44 @@
-.main{
-    display: flex;
-    justify-content: space-between;
-    
+/* Main layout */
+.main {
+  display: flex;
+  height: 100vh; 
+  overflow: hidden; 
+}
 
+
+.left-side-bar {
+  width: 20%;
+  background-color: #d8eefc;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto; 
+  border-right: 1px solid #ccc;
 }
-.left-side-bar{
-    height: 670px;
-    width: 20%;
-    
+
+/* Right Section */
+.right-side-bar {
+  margin-left: 20%; 
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
-.right-side-bar{
-    height: 670px;
-    width: 80%;
-    overflow: hidden;
+
+/* Sticky Header */
+.header-container {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+}
+
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
 }

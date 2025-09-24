@@ -25,7 +25,7 @@ export default function AssetMaster() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br  from-purple-50 to-pink-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br mt-30 from-purple-50 to-pink-50 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-8">
