@@ -5,39 +5,12 @@ export default function Header() {
 
   return (
     <div className="w-full bg-gradient-to-r from-white to-gray-50 shadow-lg border-b fixed border-gray-100 p-6">
-      <div className="flex gap-28 items-center max-w-7xl mx-auto">
+      <div className="flex gap-160 items-center max-w-7xl mx-auto">
         {/* Title Section (shifted right by 50px) */}
         <div className="flex items-center space-x-4 relative right-32">
           {/* Logo Icon */}
-          <div className="relative">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-                />
-              </svg>
-            </div>
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 border-4 border-white rounded-full animate-pulse"></div>
-          </div>
-
-          {/* Title */}
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Remote Diagnostics and Predictive Maintenance System
-            </h1>
-            <p className="text-gray-500 text-sm mt-1 flex items-center">
-              <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-              System is running optimally
-            </p>
-          </div>
+          <img className="h-[60px] w-52" src="https://effimon.com/images/26e6235b944c409c7f47003ebfb2b6f4.png" alt="" />
+         
         </div>
 
         {/* Profile Section */}
