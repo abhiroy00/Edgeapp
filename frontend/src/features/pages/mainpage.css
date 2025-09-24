@@ -12,5 +12,5 @@
 .right-side-bar{
     height: 670px;
     width: 80%;
-    
+    overflow: hidden;
 }

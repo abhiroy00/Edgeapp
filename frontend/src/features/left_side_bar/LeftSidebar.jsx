@@ -10,9 +10,8 @@ export default function LeftSidebar() {
   }
 
   const dashboardItems = [
-    { name: 'Overview', path: '/dashboard/overview' },
-    { name: 'Analytics', path: '/dashboard/analytics' },
-    { name: 'Statistics', path: '/dashboard/statistics' }
+    { name: 'Overview', path: '/dashboard' },
+    
   ]
 
   const reportsItems = [
@@ -31,17 +30,17 @@ export default function LeftSidebar() {
   ]
 
   const assetItems = [
-    { name: 'Asset Manager', path: '/asset/assetManager' },
-    { name: 'Asset Inventory', path: '/asset/assetInventory' },
-    { name: 'Asset Attributes', path: '/asset/assetAttributes' },
-    { name: 'Alarm Setup', path: '/asset/alarmSetup' },
-    { name: 'Alarm Creation', path: '/asset/alarmSetup' }
+    { name: 'Asset Master', path: 'alarm/assetmaster' },
+    { name: 'Asset Inventory', path: 'alarm/inventory' },
+    { name: 'Asset Attributes', path: 'alarm/assetattribute' },
+    { name: 'Alarm Setup', path: 'alarm/alarmsetup' },
+    { name: 'Alarm Creation', path: '/alarm/alarmcreation' }
   ]
 
   const userItems = [
-    { name: 'Type', path: '/user/Type' },
-    { name: 'Level', path: '/user/Level' },
-    { name: 'Role', path: '/user/Role' }
+    { name: 'Type', path: '/user/userlevel' },
+    { name: 'Level', path: '/user/userrole' },
+    { name: 'Role', path: '/user/usertype' }
   ]
 
   return (
