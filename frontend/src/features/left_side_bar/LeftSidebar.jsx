@@ -47,7 +47,7 @@ export default function LeftSidebar() {
     <div className="left-side-bar-main h-full w-[300px] text-black flex flex-col">
       {/* Logo Section */}
       <div className="logo p-6 border-b" style={{backgroundColor:"#d8eefc"}}>
-        <img src={logo} alt="" />
+        <img src="https://effimon.com/images/26e6235b944c409c7f47003ebfb2b6f4.png" alt="" />
       </div>
       
       {/* Navigation Menu */}
