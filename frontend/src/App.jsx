@@ -16,6 +16,8 @@ import AlarmSetup from './features/asset/alarm_setup/AlarmSetup'
 import AssetAttributes from './features/asset/asset_attributes/AssetAttributes'
 import AssetMaster from './features/asset/asset_master/AssetMaster'
 import AssetInventry from './features/asset/asset_invetory/AssetInventry'
+import Users from './features/user/users/Users'
+
 
 export default function App() {
   const router = createBrowserRouter([
@@ -59,6 +61,11 @@ export default function App() {
         {
           path:"/user/usertype",
           element:<UserType></UserType>
+        },
+        {
+          path:"/user/user",
+          element:<Users></Users>
+
         },
         {
           path:"/alarm/alarmcreation",
