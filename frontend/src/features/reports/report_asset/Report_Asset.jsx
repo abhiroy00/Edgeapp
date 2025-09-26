@@ -22,7 +22,7 @@ export default function Report_Asset() {
         <h2 className="text-xl font-semibold mb-4 border-b pb-2">Asset Reports</h2>
         <ul className="list-disc list-inside space-y-3 text-gray-700 font-medium">
          <Link to="/alarm/assetmaster/assetinformation"> <li className="hover:text-blue-600 transition cursor-pointer">Asset Information</li></Link>
-          <li className="hover:text-blue-600 transition cursor-pointer">Asset History Card</li>
+         <Link to="/alarm/assetmaster/assethistorycard"> <li className="hover:text-blue-600 transition cursor-pointer">Asset History Card</li></Link>
           <li className="hover:text-blue-600 transition cursor-pointer">Asset Performance</li>
           <li className="hover:text-blue-600 transition cursor-pointer">Asset Parameters Trend</li>
           <li className="hover:text-blue-600 transition cursor-pointer">Asset Downtime History</li>

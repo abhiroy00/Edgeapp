@@ -23,6 +23,7 @@ import Report_Asset from './features/reports/report_asset/Report_Asset'
 import ReportPlaner from './features/reports/report_planner/ReportPlaner'
 import ReportSystem from './features/reports/system/ReportSystem'
 import Asset_Information from './features/asset/asset_master/asset_information/Asset_Information'
+import Asset_History_Card from './features/asset/asset_master/asset_history_card/Asset_History_Card'
 
 
 export default function App() {
@@ -93,6 +94,11 @@ export default function App() {
          {
               path:"/alarm/assetmaster/assetinformation",
               element:<Asset_Information></Asset_Information>
+            },
+            {
+              path:"/alarm/assetmaster/assethistorycard",
+              element:<Asset_History_Card></Asset_History_Card>
+
             },
         {
           path:"alarm/inventory",
