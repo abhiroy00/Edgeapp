@@ -17,6 +17,11 @@ import AssetAttributes from './features/asset/asset_attributes/AssetAttributes'
 import AssetMaster from './features/asset/asset_master/AssetMaster'
 import AssetInventry from './features/asset/asset_invetory/AssetInventry'
 import Users from './features/user/users/Users'
+import ReportAlarm from './features/reports/report_alarm/ReportAlarm'
+import ReportAnalaysis from './features/reports/report_analaysis/ReportAnalaysis'
+import Report_Asset from './features/reports/report_asset/Report_Asset'
+import ReportPlaner from './features/reports/report_planner/ReportPlaner'
+import ReportSystem from './features/reports/system/ReportSystem'
 
 
 export default function App() {
@@ -86,6 +91,26 @@ export default function App() {
         {
           path:"alarm/inventory",
           element:<AssetInventry></AssetInventry>
+        },
+        {
+          path:"/report/alarm",
+          element:<ReportAlarm></ReportAlarm>
+        },
+        {
+          path:"/report/analaysis",
+          element:<ReportAnalaysis></ReportAnalaysis>
+        },
+        {
+          path:"/report/asset",
+          element:<Report_Asset></Report_Asset>
+        },
+        {
+          path:"/report/planer",
+          element:<ReportPlaner></ReportPlaner>
+        },
+        {
+          path:"/report/system",
+          element:<ReportSystem></ReportSystem>
         }
       ]
     }

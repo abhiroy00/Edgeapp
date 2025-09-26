@@ -3,8 +3,9 @@ import React from 'react'
 export default function Zone() {
   return (
     <div>
-    <div className="box" style={{backgroundColor:"red",height:200,width:200}}>
-    </div>
+     <div className="w-full bg-white shadow-2xl rounded-2xl p-8">
+      
+     </div>
     </div>
   )
 }

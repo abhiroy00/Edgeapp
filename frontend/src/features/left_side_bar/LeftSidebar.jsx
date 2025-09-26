@@ -15,10 +15,12 @@ export default function LeftSidebar() {
   ]
 
   const reportsItems = [
-    { name: 'Sales Report', path: '/reports/sales' },
-    { name: 'Performance Report', path: '/reports/performance' },
-    { name: 'Financial Report', path: '/reports/financial' },
-    { name: 'Custom Reports', path: '/reports/custom' }
+    { name: 'Alarm', path: '/report/alarm' },
+    { name: 'Analaysis', path: '/report/analaysis' },
+    { name: 'Asset', path: '/report/asset' },
+    { name: 'Planer', path: '/report/planer' },
+    { name: 'System', path: '/report/system' },
+  
   ]
 
   const locationItems = [

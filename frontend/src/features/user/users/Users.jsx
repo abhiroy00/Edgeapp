@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 
 export default function Users() {
   return (
-    <div className="min-h-screen mt-30 bg-gradient-to-br from-purple-50 to-pink-50 p-6 mt-20">
+    <div className="min-h-screen mt-30 bg-gradient-to-br from-purple-50 to-pink-50 p-6">
       <div className="w-full bg-white shadow-2xl rounded-2xl p-8">
         <h1 className="text-3xl font-semibold text-gray-800 text-center mb-8">
           Add User
