@@ -14,6 +14,8 @@ export default function Asset_Downtime_History() {
           <p className="font-bold text-lg">Division : Moradabad</p>
           <p className="font-bold text-lg">Zone : Northern Railway</p>
         </div>
+
+
       </div>
 
       <div className="w-full p-6 space-y-6 bg-white shadow-lg rounded-xl">
@@ -87,6 +89,8 @@ export default function Asset_Downtime_History() {
 </div>
 
 
+
+      
 
       
     </div>

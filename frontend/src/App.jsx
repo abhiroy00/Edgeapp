@@ -27,6 +27,7 @@ import Asset_History_Card from './features/asset/asset_master/asset_history_card
 import Asset_Parameters_Trend from './features/asset/asset_master/asset_parameters_trend/Asset_Parameters_Trend'
 import Asset_Downtime_History from './features/asset/asset_master/asset_downtime_history/Asset_Downtime_History'
 import Asset_MTBF_MTTR from './features/asset/asset_master/asset_mtbf_mttr.jsx/Asset_MTBF_MTTR'
+import AssetPerformance from './features/asset/asset_master/asset_performance/AssetPerformance'
 
 
 export default function App() {
@@ -105,7 +106,7 @@ export default function App() {
             },
             {
                path:"/alarm/assetmaster/asset_performance",
-               element:<Asset_Information></Asset_Information>
+               element:<AssetPerformance></AssetPerformance>
 
             },
             {

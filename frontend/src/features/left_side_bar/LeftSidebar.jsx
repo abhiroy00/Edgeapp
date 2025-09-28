@@ -87,7 +87,7 @@ export default function LeftSidebar() {
                   key={index} 
                   to={item.path}
                   className="block p-2  bg-fuchsia-200 rounded-lg hover:bg-fuchsia-900 cursor-pointer transition duration-200 text-black hover:text-white"
-                  onClick={() => setOpenDropdown(null)}
+
                 >
                   {item.name}
                 </Link>
@@ -129,7 +129,7 @@ export default function LeftSidebar() {
                   key={index} 
                   to={item.path}
                   className="block p-2  bg-fuchsia-200 rounded-lg hover:bg-fuchsia-900 cursor-pointer transition duration-200 text-black hover:text-white"
-                  onClick={() => setOpenDropdown(null)}
+                 
                 >
                   {item.name}
                 </Link>
@@ -170,7 +170,7 @@ export default function LeftSidebar() {
                   key={index} 
                   to={item.path}
                   className="block p-2  bg-fuchsia-200 rounded-lg hover:bg-fuchsia-900 cursor-pointer transition duration-200 text-black hover:text-white"
-                  onClick={() => setOpenDropdown(null)}
+                  
                 >
                   {item.name}
                 </Link>
@@ -211,7 +211,7 @@ export default function LeftSidebar() {
                   key={index} 
                   to={item.path}
                   className="block p-2  bg-fuchsia-200 rounded-lg hover:bg-fuchsia-900 cursor-pointer transition duration-200 text-black hover:text-white"
-                  onClick={() => setOpenDropdown(null)}
+                  
                 >
                   {item.name}
                 </Link>
@@ -252,7 +252,7 @@ export default function LeftSidebar() {
                   key={index} 
                   to={item.path}
                   className="block p-2  bg-fuchsia-200 rounded-lg hover:bg-fuchsia-900 cursor-pointer transition duration-200 text-black hover:text-white"
-                  onClick={() => setOpenDropdown(null)}
+                 
                 >
                   {item.name}
                 </Link>

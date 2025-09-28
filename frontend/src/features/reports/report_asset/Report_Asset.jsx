@@ -26,7 +26,7 @@ export default function Report_Asset() {
          <Link to="/alarm/assetmaster/asset_performance"><li className="hover:text-blue-600 transition cursor-pointer">Asset Performance</li></Link> 
          <Link to="/alarm/assetmaster/asset_parameters_trend"> <li className="hover:text-blue-600 transition cursor-pointer">Asset Parameters Trend</li></Link>
          <Link to="/alarm/assetmaster/asset_downtime_history"><li className="hover:text-blue-600 transition cursor-pointer">Asset Downtime History</li></Link>
-        <Link to="/alarm/assetmaster/asset_mtbf_mttr"><li className="hover:text-blue-600 transition cursor-pointer">Asset MTBF & MTTR</li></Link>
+         <Link to="/alarm/assetmaster/asset_mtbf_mttr"><li className="hover:text-blue-600 transition cursor-pointer">Asset MTBF & MTTR</li></Link>
         </ul>
       </div>
 
