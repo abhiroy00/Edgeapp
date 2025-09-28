@@ -5,7 +5,7 @@ export default function Asset_History_Card() {
     <div className="p-8">
       {/* Header */}
       <div
-        className="w-full mt-10 shadow-2xl rounded-2xl p-8 mb-10"
+        className="w-full mt-25 shadow-2xl rounded-2xl p-8 mb-10"
         style={{ backgroundColor: "#d8eefc" }}
       >
         <div className="flex flex-col md:flex-row md:justify-between gap-4">

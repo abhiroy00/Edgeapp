@@ -23,10 +23,10 @@ export default function Report_Asset() {
         <ul className="list-disc list-inside space-y-3 text-gray-700 font-medium">
          <Link to="/alarm/assetmaster/assetinformation"> <li className="hover:text-blue-600 transition cursor-pointer">Asset Information</li></Link>
          <Link to="/alarm/assetmaster/assethistorycard"> <li className="hover:text-blue-600 transition cursor-pointer">Asset History Card</li></Link>
-          <li className="hover:text-blue-600 transition cursor-pointer">Asset Performance</li>
-          <li className="hover:text-blue-600 transition cursor-pointer">Asset Parameters Trend</li>
-          <li className="hover:text-blue-600 transition cursor-pointer">Asset Downtime History</li>
-          <li className="hover:text-blue-600 transition cursor-pointer">Asset MTBF & MTTR</li>
+         <Link to="/alarm/assetmaster/asset_performance"><li className="hover:text-blue-600 transition cursor-pointer">Asset Performance</li></Link> 
+         <Link to="/alarm/assetmaster/asset_parameters_trend"> <li className="hover:text-blue-600 transition cursor-pointer">Asset Parameters Trend</li></Link>
+         <Link to="/alarm/assetmaster/asset_mtbf_mttr"><li className="hover:text-blue-600 transition cursor-pointer">Asset Downtime History</li></Link>
+        <Link to="/alarm/assetmaster/asset_mtbf_mttr"><li className="hover:text-blue-600 transition cursor-pointer">Asset MTBF & MTTR</li></Link>
         </ul>
       </div>
 

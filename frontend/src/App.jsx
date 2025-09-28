@@ -24,6 +24,9 @@ import ReportPlaner from './features/reports/report_planner/ReportPlaner'
 import ReportSystem from './features/reports/system/ReportSystem'
 import Asset_Information from './features/asset/asset_master/asset_information/Asset_Information'
 import Asset_History_Card from './features/asset/asset_master/asset_history_card/Asset_History_Card'
+import Asset_Parameters_Trend from './features/asset/asset_master/asset_parameters_trend/Asset_Parameters_Trend'
+import Asset_Downtime_History from './features/asset/asset_master/asset_downtime_history/Asset_Downtime_History'
+import Asset_MTBF_MTTR from './features/asset/asset_master/asset_mtbf_mttr.jsx/Asset_MTBF_MTTR'
 
 
 export default function App() {
@@ -100,6 +103,27 @@ export default function App() {
               element:<Asset_History_Card></Asset_History_Card>
 
             },
+            {
+               path:"/alarm/assetmaster/asset_performance",
+               element:<Asset_Information></Asset_Information>
+
+            },
+            {
+              path:"/alarm/assetmaster/asset_parameters_trend",
+              element:<Asset_Parameters_Trend></Asset_Parameters_Trend>
+
+            },
+            {
+              path:"/alarm/assetmaster/asset_downtime_history",
+              element:<Asset_Downtime_History></Asset_Downtime_History>
+
+            },
+            {
+              path:"/alarm/assetmaster/asset_mtbf_mttr",
+              element:<Asset_MTBF_MTTR></Asset_MTBF_MTTR>
+            },
+
+
         {
           path:"alarm/inventory",
           element:<AssetInventry></AssetInventry>
