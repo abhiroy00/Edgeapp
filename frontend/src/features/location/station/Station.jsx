@@ -60,18 +60,18 @@ export default function Station() {
   if (isError) return <p className="text-center mt-10 text-red-600">Error loading stations.</p>;
 
   return (
-    <div className="w-full mt-30 min-h-screen bg-gray-100 flex justify-center py-10">
+    <div className="w-full mt-30 bg-gray-100 flex justify-center py-10">
       <div className="w-11/12 lg:w-9/12 bg-white shadow-xl rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-blue-700 mb-6 text-center">
-          🚉 Stations Management
-        </h1>
+        <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5 ">
+  🚉 Stations Management
+</h1>
 
         {/* 🔎 Search */}
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
             placeholder="🔍 Search station..."
-            className="border p-2 rounded-md w-1/2 focus:ring focus:ring-blue-200"
+            className="border p-2 rounded-md w-full focus:ring focus:ring-blue-200"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -157,12 +157,11 @@ export default function Station() {
           </div>
 
           <div className="flex items-end">
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow-md transition"
-            >
-              {editingId ? "Update Station" : "Add Station"}
-            </button>
+          <button
+  type="submit"
+  className="bg-[oklch(0.48_0.27_303.85)] hover:bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md transition">
+  {editingId ? "Update Station" : "Add Station"}
+</button>
           </div>
         </form>
 
