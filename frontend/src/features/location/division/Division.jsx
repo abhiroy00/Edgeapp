@@ -1,81 +1,178 @@
-import React from 'react'
+import React, { useState } from "react";
 import { Plus } from "lucide-react";
+import {
+  useGetDivisionsQuery,
+  useGetZonesQuery,
+  useCreateDivisionMutation,
+  useDeleteDivisionMutation,
+} from "./divisionApi";
 
 export default function Division() {
+  const { data: divisions = [], isLoading: loadingDivisions } = useGetDivisionsQuery();
+  const { data: zones = [], isLoading: loadingZones } = useGetZonesQuery();
+
+  const [createDivision] = useCreateDivisionMutation();
+  const [deleteDivision] = useDeleteDivisionMutation();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    prefix: "",
+    zoneId: "",
+    isActive: "true",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createDivision(formData).unwrap();
+      setFormData({ name: "", description: "", prefix: "", zoneId: "", isActive: "true" });
+    } catch (err) {
+      console.error("❌ Error creating division:", err);
+      alert("Failed to add division. Check API.");
+    }
+  };
+
+const handleDelete = async (divisionid) => {
+  if (!divisionid) return alert("Division ID not found!");
+  if (window.confirm("Are you sure you want to delete this division?")) {
+    try {
+      await deleteDivision(divisionid).unwrap();
+      alert("Division deleted successfully!");
+    } catch (err) {
+      console.error("❌ Error deleting division:", err);
+      alert("Failed to delete division. Check API.");
+    }
+  }
+};
+
+
+  if (loadingDivisions || loadingZones) return <p>Loading...</p>;
+
   return (
-    <div>
-       <button className="p-2 h-12 flex items-center rounded-md mt-30 ml-270 w-40 text-center bg-green-600 hover:bg-green-700 text-white transition">
-                        <Plus size={18} className='font-bold' /> <p className='font-bold'>Add Division</p>
-      </button>
-    <div className="w-full mt-3  bg-white shadow-2xl rounded-2xl p-8">
+    <div className="p-6 mt-30">
+      {/* Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-2xl rounded-2xl p-6 mb-6 space-y-4"
+      >
+        <h2 className="text-xl font-bold text-fuchsia-700 mb-4">Add Division</h2>
 
+        <div>
+          <label className="block text-gray-700">Division Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-fuchsia-500"
+            required
+          />
+        </div>
 
-<div className="flex justify-between items-center mb-4">
-    <div className="flex items-center gap-2">
-      <span className="text-gray-700">Show</span>
-      <input
-        type="number"
-        className="w-20 border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-      />
-      <span className="text-gray-700">entries</span>
+        <div>
+          <label className="block text-gray-700">Division Description</label>
+          <input
+            type="text"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-fuchsia-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-700">Zone</label>
+          <select
+            name="zoneId"
+            value={formData.zoneId}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-fuchsia-500"
+            required
+          >
+            <option value="">Select Zone</option>
+            {zones.map((zone) => (
+              <option key={zone.zoneid} value={zone.zoneid}>
+                {zone.zonename}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-gray-700">Prefix Code</label>
+          <input
+            type="text"
+            name="prefix"
+            value={formData.prefix}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-fuchsia-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-700">Is Active</label>
+          <select
+            name="isActive"
+            value={formData.isActive}
+            onChange={handleChange}
+            className="w-full border rounded-lg p-2 mt-1 focus:ring-2 focus:ring-fuchsia-500"
+          >
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          className="p-2 flex items-center justify-center gap-2 rounded-md mt-4 w-40 text-center bg-green-600 hover:bg-green-700 text-white transition"
+        >
+          <Plus size={18} /> <span className="font-bold">Add Division</span>
+        </button>
+      </form>
+
+      {/* Table */}
+      <div className="w-full bg-white shadow-2xl rounded-2xl p-6">
+        <h2 className="text-xl font-bold text-fuchsia-700 mb-4">Division List</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-200 rounded-lg text-sm">
+            <thead className="bg-fuchsia-100">
+              <tr>
+                <th className="px-4 py-2 text-left">Name</th>
+                <th className="px-4 py-2 text-left">Description</th>
+                <th className="px-4 py-2 text-left">Prefix</th>
+                <th className="px-4 py-2 text-left">Under Zone</th>
+                <th className="px-4 py-2 text-left">Active</th>
+                <th className="px-4 py-2 text-left">Delete</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+ {divisions.map((div) => (
+  <tr key={div.divisionid} className="hover:bg-fuchsia-50">
+    <td className="px-4 py-2">{div.divisionname}</td>
+    <td className="px-4 py-2">{div.divisiondesc}</td>
+    <td className="px-4 py-2">{div.prefixcode}</td>
+    <td className="px-4 py-2">{div.zone?.zonename}</td>
+    <td className="px-4 py-2">{div.is_active ? "✅" : "❌"}</td>
+    <td
+      className="px-4 py-2 text-red-600 cursor-pointer"
+      onClick={() => handleDelete(div.divisionid)}
+    >
+      🗑️
+    </td>
+  </tr>
+))}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div className="flex items-center gap-2">
-      <label className="text-gray-700 font-medium">Search:</label>
-      <input
-        type="text"
-        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-        placeholder="Type to search..."
-      />
-    </div>
-</div>
-
-
-
-
-  <div className="overflow-x-auto flex-1">
-    <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-      <thead className="bg-fuchsia-100">
-        <tr>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Name</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Description</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Prefix</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Under Zone</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Edit</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Delete</th>
-         
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-200">
-        <tr className="hover:bg-fuchsia-50">
-          <td className="px-4 py-2">muradabad</td>
-          <td className="px-4 py-2">M</td>
-          <td className="px-4 py-2">MB</td>
-          <td className="px-4 py-2">Northern Railway</td>
-          <td className="px-4 py-2 text-fuchsia-700 cursor-pointer">✏️</td>
-          <td className="px-4 py-2 text-red-600 cursor-pointer">🗑️</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
-
-    <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-    <p>Showing 1 to 10 of 50 entries</p>
-    <div className="flex items-center gap-2">
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">Prev</button>
-      <button className="px-3 py-1 border rounded-md bg-fuchsia-600 text-white">1</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">2</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">3</button>
-      <span className="px-2">...</span>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">5</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">Next</button>
-    </div>
-  </div>
-
-
-    </div>
-      
-    </div>
-  )
+  );
 }
