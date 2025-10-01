@@ -128,18 +128,17 @@ const handleDelete = async (divisionid) => {
             <option value="false">No</option>
           </select>
         </div>
-
-        <button
-          type="submit"
-          className="p-2 flex items-center justify-center gap-2 rounded-md mt-4 w-40 text-center bg-green-600 hover:bg-green-700 text-white transition"
-        >
-          <Plus size={18} /> <span className="font-bold">Add Division</span>
-        </button>
+<button
+  type="submit"
+  className="p-2 flex items-center justify-center gap-2 rounded-md mt-4 w-full text-center bg-[oklch(0.45_0.15_323.42)] hover:bg-[oklch(0.40_0.15_323.42)] text-white transition duration-300 ease-in-out"
+>
+  <Plus size={18} /> <span className="font-bold">Add Division</span>
+</button>
       </form>
 
       {/* Table */}
       <div className="w-full bg-white shadow-2xl rounded-2xl p-6">
-        <h2 className="text-xl font-bold text-fuchsia-700 mb-4">Division List</h2>
+        <h2 className="text-xl font-bold text-[oklch(0.45_0.15_323.42)] mb-4">Division List</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-200 rounded-lg text-sm">
             <thead className="bg-fuchsia-100">
