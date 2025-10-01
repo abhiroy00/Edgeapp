@@ -14,9 +14,10 @@ class DivisionMasterSerializer(serializers.ModelSerializer):
         model = DivisionMaster
         fields = '__all__'
 
-class StationMasterSeriallizer(serializers.ModelSerializer):
-    division=serializers.PrimaryKeyRelatedField(queryset=StationMaster.objects.all())
+class StationMasterSerializer(serializers.ModelSerializer):
+    # Correct: Division should point to DivisionMaster, not StationMaster
+    division = serializers.PrimaryKeyRelatedField(queryset=DivisionMaster.objects.all())
 
     class Meta:
-        model= StationMaster
-        fields='__all__'
+        model = StationMaster
+        fields = '__all__'
