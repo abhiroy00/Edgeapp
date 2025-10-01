@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from Location.models import ZoneMaster,DivisionMaster,StationMaster
+from Location.models import (ZoneMaster,
+                             DivisionMaster,
+                             StationMaster,
+                             StationEntitiesMaster
+                             )
 
 class ZoneMasterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,3 +25,9 @@ class StationMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = StationMaster
         fields = '__all__'
+
+class StationEntitiesMasterSerializer(serializers.ModelSerializer):
+    station=serializers.PrimaryKeyRelatedField(queryset=StationMaster.objects.all())
+    class Meta:
+        model=StationEntitiesMaster
+        fields='__all__'

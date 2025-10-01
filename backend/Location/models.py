@@ -36,6 +36,19 @@ class StationMaster(models.Model):
     def __str__(self):
         return f"{self.stationname}"
 
+class StationEntitiesMaster(models.Model):
+    entityid=models.AutoField(primary_key=True)
+    entityname=models.CharField(max_length=200,null=False)
+    entitydesc=models.TextField(blank=True,null=True)
+    station=models.ForeignKey(StationMaster,on_delete=models.CASCADE,related_name="entities")
+    prefixcode = models.CharField(max_length=20, null=False)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.entityid}"
+
+
+
 
 
 

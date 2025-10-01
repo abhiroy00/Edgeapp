@@ -2,8 +2,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from Location.models import ZoneMaster,DivisionMaster,StationMaster
-from Location.serializer import ZoneMasterSerializer,DivisionMasterSerializer,StationMasterSerializer
+from Location.models import (ZoneMaster,
+                             DivisionMaster,
+                             StationMaster,
+                             StationEntitiesMaster
+                             )
+from Location.serializer import (ZoneMasterSerializer,
+                                 DivisionMasterSerializer,
+                                 StationMasterSerializer,
+                                 StationEntitiesMasterSerializer
+                               )  
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 
@@ -163,4 +171,74 @@ class StationMasterDetailAPIView(APIView):
         if not station:
             return Response({"error": "Station not found"}, status=status.HTTP_404_NOT_FOUND)
         station.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+
+
+    class StationEntitiesMasterListCreateAPIView(APIView):
+        """
+    GET: List all station entities with pagination and search
+    POST: Create a new station entity
+        """
+    def get(self, request):
+        paginator = PageNumberPagination()
+        paginator.page_size = request.GET.get('page_size', 10)
+
+        search_query = request.GET.get('search', '')
+        queryset = StationEntitiesMaster.objects.all()
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(entityname__icontains=search_query) |
+                Q(entitydesc__icontains=search_query) |
+                Q(station__stationname__icontains=search_query)
+            )
+
+        result_page = paginator.paginate_queryset(queryset, request)
+        serializer = StationEntitiesMasterSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request):
+        serializer = StationEntitiesMasterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StationEntitiesMasterDetailAPIView(APIView):
+    """
+    GET: Retrieve a station entity
+    PUT: Update a station entity
+    DELETE: Delete a station entity
+    """
+    def get_object(self, pk):
+        try:
+            return StationEntitiesMaster.objects.get(pk=pk)
+        except StationEntitiesMaster.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        entity = self.get_object(pk)
+        if not entity:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = StationEntitiesMasterSerializer(entity)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        entity = self.get_object(pk)
+        if not entity:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = StationEntitiesMasterSerializer(entity, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        entity = self.get_object(pk)
+        if not entity:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        entity.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
