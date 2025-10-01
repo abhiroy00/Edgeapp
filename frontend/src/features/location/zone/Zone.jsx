@@ -124,7 +124,8 @@ export default function Zone() {
     <div className="w-full p-8 mt-10">
       {/* Header */}
       <div className="w-full mt-30 shadow-lg rounded-lg p-6 mb-8 bg-green-100 border border-green-300">
-        <h1 className="text-green-700 text-3xl font-bold">Zone Management</h1>
+        <h1 className="text-[oklch(0.45_0.15_323.42)] text-3xl font-bold">Zone Master</h1>
+
         <p className="text-gray-700 mt-1">
           Add, update, delete, and manage zones.
         </p>
@@ -190,19 +191,18 @@ export default function Zone() {
           </select>
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-semibold hover:bg-green-700 transition"
-        >
-          {editingId ? "✏️ Update Zone" : "➕ Add Zone"}
-        </button>
+       <button
+  type="submit"
+  className="w-full bg-[oklch(0.45_0.15_323.42)] text-white py-3 rounded-lg text-lg font-semibold hover:bg-[oklch(0.40_0.15_323.42)] transition"
+>
+  {editingId ? "✏️ Update Zone" : "➕ Add Zone"}
+</button>
       </form>
 
       {/* Zone List */}
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-green-700 mb-5">
-          Existing Zones
-        </h2>
+        <h2 className="text-2xl font-bold text-[oklch(0.45_0.15_323.42)] mb-5">Existing Zones</h2>
+
         <ul className="space-y-4">
           {paginatedZones.map((zone) => (
             <li
