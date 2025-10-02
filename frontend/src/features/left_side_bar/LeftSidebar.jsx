@@ -40,7 +40,7 @@ export default function LeftSidebar() {
   ]
 
   const userItems = [
-    { name: 'Type', path: '/user/userlevel' },
+    { name: 'Type', path: '/user/usertype' },
     { name: 'Level', path: '/user/userrole' },
     { name: 'Role', path: '/user/usertype' },
     { name: 'User', path: '/user/user' }
