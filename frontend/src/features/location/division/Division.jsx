@@ -60,7 +60,7 @@ const handleDelete = async (divisionid) => {
         onSubmit={handleSubmit}
         className="bg-white shadow-2xl rounded-2xl p-6 mb-6 space-y-4"
       >
-        <h2 className="text-xl font-bold text-fuchsia-700 mb-4">Add Division</h2>
+        <h2 className="text-xl font-bold text-fuchsia-700 mb-7">🏛️ Add Division</h2>
 
         <div>
           <label className="block text-gray-700">Division Name</label>
@@ -138,10 +138,10 @@ const handleDelete = async (divisionid) => {
 
       {/* Table */}
       <div className="w-full bg-white shadow-2xl rounded-2xl p-6">
-        <h2 className="text-xl font-bold text-[oklch(0.45_0.15_323.42)] mb-4">Division List</h2>
+        <h2 className="text-xl font-bold text-[oklch(0.45_0.15_323.42)] mb-6">📋 Division List</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-            <thead className="bg-fuchsia-100">
+            <thead className="bg-blue-100">
               <tr>
                 <th className="px-4 py-2 text-left">Name</th>
                 <th className="px-4 py-2 text-left">Description</th>

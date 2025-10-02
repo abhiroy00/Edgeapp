@@ -83,16 +83,16 @@ export default function Entity() {
     <div className="w-full mt-30 min-h-screen bg-gray-100 flex justify-center py-10">
       {/* ✅ Wider container */}
       <div className="w-full max-w-7xl bg-white shadow-xl rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-fuchsia-700 mb-6 text-center">
-          🏢 Entity Management
-        </h1>
+           <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5 ">
+  🛤️ Entity Management
+</h1>
 
         {/* 🔎 Search */}
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
             placeholder="🔍 Search entity..."
-            className="border p-2 rounded-md w-1/2 focus:ring focus:ring-fuchsia-300"
+            className="border p-2 rounded-md w-full focus:ring focus:ring-blue-300"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -104,7 +104,7 @@ export default function Entity() {
         {/* 📝 Form */}
         <form
           onSubmit={handleSubmit}
-          className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-fuchsia-50 p-6 rounded-lg shadow-inner"
+          className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-6 rounded-lg shadow-inner"
         >
           <div>
             <label className="block mb-1 text-sm font-semibold">
@@ -188,7 +188,7 @@ export default function Entity() {
           <div className="flex items-end">
             <button
               type="submit"
-              className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-6 py-2 rounded shadow-md transition"
+              className="bg-[oklch(0.48_0.27_303.85)] hover:bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md transition"
             >
               {editingId ? "Update Entity" : "Add Entity"}
             </button>
@@ -198,7 +198,7 @@ export default function Entity() {
         {/* 📋 Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
-            <thead className="bg-fuchsia-100">
+            <thead className="bg-blue-100">
               <tr>
                 <th className="px-4 py-2">Entity Name</th>
                 <th className="px-4 py-2">Description</th>
