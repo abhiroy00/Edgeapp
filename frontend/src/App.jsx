@@ -5,7 +5,6 @@ import MainPage from './features/pages/MianPage'
 import Dashboard from './features/dasboard/Dasboard'
 import Division from './features/location/division/Division'
 import Rack from './features/location/rack/Rack'
-import Track from './features/location/track/Track'
 import Zone from './features/location/zone/Zone'
 import Station from './features/location/station/Station'
 import UserLevel from './features/user/user_level/UserLevel'
@@ -28,6 +27,7 @@ import Asset_Parameters_Trend from './features/asset/asset_master/asset_paramete
 import Asset_Downtime_History from './features/asset/asset_master/asset_downtime_history/Asset_Downtime_History'
 import Asset_MTBF_MTTR from './features/asset/asset_master/asset_mtbf_mttr.jsx/Asset_MTBF_MTTR'
 import AssetPerformance from './features/asset/asset_master/asset_performance/AssetPerformance'
+import Entity from './features/location/entity/Entity'
 
 
 export default function App() {
@@ -50,8 +50,8 @@ export default function App() {
           element:<Rack></Rack>
         },
         {
-          path:"/location/track",
-          element:<Track></Track>
+          path:"/location/entity",
+          element:<Entity></Entity>
         },
         {
           path:"/location/zone",

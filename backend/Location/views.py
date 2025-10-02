@@ -175,12 +175,11 @@ class StationMasterDetailAPIView(APIView):
     
 
 
-
-    class StationEntitiesMasterListCreateAPIView(APIView):
-        """
+class StationEntitiesMasterListCreateAPIView(APIView):
+    """
     GET: List all station entities with pagination and search
     POST: Create a new station entity
-        """
+    """
     def get(self, request):
         paginator = PageNumberPagination()
         paginator.page_size = request.GET.get('page_size', 10)

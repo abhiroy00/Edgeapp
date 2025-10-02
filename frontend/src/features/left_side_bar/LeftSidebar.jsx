@@ -26,7 +26,7 @@ export default function LeftSidebar() {
   const locationItems = [
     { name: 'Division', path: '/location/divison' },
     { name: 'Zone', path: '/location/zone' },
-    { name: 'Track', path: '/location/track' },
+    { name: 'Entity', path: '/location/entity' },
     { name: 'Rack', path: '/location/rack' },
     {name:'Station',path:'/location/station'}
   ]

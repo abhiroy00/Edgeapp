@@ -61,7 +61,7 @@ export default function Station() {
 
   return (
     <div className="w-full mt-30 bg-gray-100 flex justify-center py-10">
-      <div className="w-11/12 lg:w-9/12 bg-white shadow-xl rounded-lg p-8">
+     <div className="w-full max-w-7xl bg-white shadow-xl rounded-lg p-8">
         <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5 ">
   🚉 Stations Management
 </h1>

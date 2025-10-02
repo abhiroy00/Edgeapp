@@ -5,7 +5,9 @@ ZoneMasterListCreateAPIView,
 ZoneMasterDetailAPIView,
 DivisionMasterAPIView,
 StationMasterListCreateAPIView,
-StationMasterDetailAPIView
+StationMasterDetailAPIView,
+StationEntitiesMasterDetailAPIView,
+StationEntitiesMasterListCreateAPIView
 )
 
 urlpatterns = [
@@ -13,7 +15,9 @@ urlpatterns = [
     path('zones/<int:pk>/', ZoneMasterDetailAPIView.as_view(), name='zone-detail'),
     path('divisions/', DivisionMasterAPIView.as_view()),         
     path('divisions/<int:pk>/', DivisionMasterAPIView.as_view()),
-     path('stations/', StationMasterListCreateAPIView.as_view(), name='station-list-create'),
+    path('stations/', StationMasterListCreateAPIView.as_view(), name='station-list-create'),
     path('stations/<int:pk>/', StationMasterDetailAPIView.as_view(), name='station-detail'),
+    path('entities/', StationEntitiesMasterListCreateAPIView.as_view(), name='entity-list-create'),
+    path('entities/<int:pk>/', StationEntitiesMasterDetailAPIView.as_view(), name='entity-detail'),
  
 ]
