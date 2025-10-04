@@ -1,4 +1,5 @@
 from django.db import models
+from Location.models import ZoneMaster,DivisionMaster,StationMaster
 
 # Create your models here.
 class UserTypeMaster(models.Model):
@@ -36,6 +37,33 @@ class UserRolePermissionMap(models.Model):
     canViewReport = models.BooleanField(default=True)
     canPrintReport = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
+
+class UserLevelMaster(models.Model):
+    levelid = models.AutoField(primary_key=True)
+    levelname = models.CharField(max_length=200)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.levelname}" 
+
+class UserMaster(models.Model):
+    userid=models.AutoField(primary_key=True)
+    usertype=models.ForeignKey(UserTypeMaster,on_delete=models.CASCADE,related_name="usermaster")
+    userlevel=models.ForeignKey(UserLevelMaster,on_delete=models.CASCADE,related_name="userlevelmaster")
+    userrole=models.ForeignKey(UserRoleMaster,on_delete=models.CASCADE,related_name="userrolemaster")
+    username=models.CharField(max_length=200)
+    userphone=models.IntegerField()
+    usermail=models.EmailField()
+    userdesignation=models.CharField(max_length=200)
+    alertrecipient=models.IntegerField()
+    zone=models.ForeignKey(ZoneMaster,on_delete=models.CASCADE,related_name="zonemaster")
+    division=models.ForeignKey(DivisionMaster,on_delete=models.CASCADE,related_name="divisionmaster")
+    station=models.ForeignKey(StationMaster,on_delete=models.CASCADE,related_name="stationmaster")
+    password=models.CharField(max_length=20)
+    is_active = models.BooleanField(default=True)
+    sendsms=models.IntegerField()
+    
+    
 
     
 

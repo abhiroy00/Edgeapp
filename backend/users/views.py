@@ -7,12 +7,16 @@ from django.db.models import Q
 from users.models import (UserTypeMaster,
                           UserRoleMaster,
                           UserProtectedEntityMaster,
-                          UserRolePermissionMap
+                          UserRolePermissionMap,
+                          UserLevelMaster,
+                          UserMaster
                           )
 from users.serializer import (UserTypeMasterSeriallizer,
                               RoleMasterSerilallizer,
                               UserProtectedSerializer,
-                              UserRolePermissionMapSerializer
+                              UserRolePermissionMapSerializer,
+                              UserLevelMasterSerializer,
+                              UserMasterSerializer
                               )
 
 
@@ -226,6 +230,8 @@ class UserRolePermissionMapPagination(PageNumberPagination):
 
 
 class UserRolePermissionMapView(APIView):
+
+
     pagination_class = UserRolePermissionMapPagination
 
     # GET: list with search & pagination OR retrieve single
@@ -422,4 +428,160 @@ class UserRolePermissionMapView(APIView):
             perm.delete()
             return Response({"message": "Deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except UserRolePermissionMap.DoesNotExist:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+
+
+
+class UserLevelMasterPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+# 🔹 API View
+class UserLevelMasterView(APIView):
+    pagination_class = UserLevelMasterPagination
+
+    # GET (List + Search + Pagination or Single Retrieve)
+    def get(self, request, pk=None):
+        if pk:  # Single record
+            try:
+                instance = UserLevelMaster.objects.get(pk=pk)
+                serializer = UserLevelMasterSerializer(instance)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except UserLevelMaster.DoesNotExist:
+                return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Search support
+        search_query = request.query_params.get("search", "")
+        queryset = UserLevelMaster.objects.all()
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(levelname__icontains=search_query)
+            )
+
+        # Pagination
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = UserLevelMasterSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    # POST (Create)
+    def post(self, request):
+        serializer = UserLevelMasterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # PUT (Full Update)
+    def put(self, request, pk):
+        try:
+            instance = UserLevelMaster.objects.get(pk=pk)
+        except UserLevelMaster.DoesNotExist:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserLevelMasterSerializer(instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # PATCH (Partial Update)
+    def patch(self, request, pk):
+        try:
+            instance = UserLevelMaster.objects.get(pk=pk)
+        except UserLevelMaster.DoesNotExist:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserLevelMasterSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # DELETE
+    def delete(self, request, pk):
+        try:
+            instance = UserLevelMaster.objects.get(pk=pk)
+            instance.delete()
+            return Response({"message": "Deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except UserLevelMaster.DoesNotExist:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+class UserMasterView(APIView):
+    pagination_class = UserLevelMasterPagination
+
+    # GET (list with search + pagination or single)
+    def get(self, request, pk=None):
+        if pk:
+            try:
+                instance = UserMaster.objects.get(pk=pk)
+                serializer = UserMasterSerializer(instance)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except UserMaster.DoesNotExist:
+                return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        search = request.query_params.get("search", "")
+        queryset = UserMaster.objects.all()
+
+        if search:
+            queryset = queryset.filter(
+                Q(username__icontains=search) |
+                Q(usermail__icontains=search) |
+                Q(userdesignation__icontains=search)
+            )
+
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = UserMasterSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    # POST (create)
+    def post(self, request):
+        serializer = UserMasterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # PUT (full update)
+    def put(self, request, pk):
+        try:
+            instance = UserMaster.objects.get(pk=pk)
+        except UserMaster.DoesNotExist:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserMasterSerializer(instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # PATCH (partial update)
+    def patch(self, request, pk):
+        try:
+            instance = UserMaster.objects.get(pk=pk)
+        except UserMaster.DoesNotExist:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserMasterSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # DELETE
+    def delete(self, request, pk):
+        try:
+            instance = UserMaster.objects.get(pk=pk)
+            instance.delete()
+            return Response({"message": "Deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except UserMaster.DoesNotExist:
             return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)

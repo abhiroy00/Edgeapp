@@ -3,7 +3,9 @@ from django.urls import path
 from .views import (UserTypeMasterAPIView,
                     UserRoleMasterAPIView,
                     UserProtectedEntityAPIView,
-                    UserRolePermissionMapView
+                    UserRolePermissionMapView,
+                    UserLevelMasterView,
+                    UserMasterView
                     )
 
 urlpatterns = [
@@ -15,6 +17,10 @@ urlpatterns = [
     path('protected-entities/<int:pk>/', UserProtectedEntityAPIView.as_view()),
     path("role-permissions/", UserRolePermissionMapView.as_view()),  # list + create
     path("role-permissions/<int:pk>/", UserRolePermissionMapView.as_view()),
+    path("userlevel/", UserLevelMasterView.as_view()),              # list + create
+    path("userlevel/<int:pk>/", UserLevelMasterView.as_view()),
+     path("users/", UserMasterView.as_view()),          # list + create
+    path("users/<int:pk>/", UserMasterView.as_view()),
   
 
 ]

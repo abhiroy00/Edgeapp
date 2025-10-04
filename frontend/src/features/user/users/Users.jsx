@@ -1,169 +1,328 @@
-import React from "react";
-import { Plus } from "lucide-react";
+import React, { useState } from "react";
+import {
+  useGetUsersQuery,
+  useCreateUserMutation,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
+} from "./userApi";
+
+import { useGetUserTypesQuery } from "../user_type/userTypeApi";
+import { useGetUserLevelsQuery } from "../user_level/userLevelApi";
+import { useGetUserRolesQuery } from "../user_role/userRoleApi";
+import { useGetZonesQuery } from "../../location/zone/zoneApi";
+import { useGetDivisionsQuery } from "../../location/division/divisionApi";
+import { useGetStationsQuery } from "../../location/station/stationApi";
 
 export default function Users() {
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+
+  const [formData, setFormData] = useState({
+    usertype: "",
+    userlevel: "",
+    userrole: "",
+    username: "",
+    userphone: "",
+    usermail: "",
+    userdesignation: "",
+    alertrecipient: 0,
+    zone: "",
+    division: "",
+    station: "",
+    password: "",
+    is_active: true,
+    sendsms: 0,
+  });
+
+  const [editingId, setEditingId] = useState(null);
+
+  // Fetch dropdown data
+  const { data: userTypes } = useGetUserTypesQuery();
+  const { data: userLevels } = useGetUserLevelsQuery();
+  const { data: userRoles } = useGetUserRolesQuery();
+  const { data: zones } = useGetZonesQuery();
+  const { data: divisions } = useGetDivisionsQuery();
+  const { data: stations } = useGetStationsQuery();
+
+  // CRUD hooks
+  const { data: users, isLoading } = useGetUsersQuery({ page, pageSize });
+  const [createUser] = useCreateUserMutation();
+  const [updateUser] = useUpdateUserMutation();
+  const [deleteUser] = useDeleteUserMutation();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (editingId) {
+      await updateUser({ id: editingId, ...formData });
+      setEditingId(null);
+    } else {
+      await createUser(formData);
+    }
+    setFormData({
+      usertype: "",
+      userlevel: "",
+      userrole: "",
+      username: "",
+      userphone: "",
+      usermail: "",
+      userdesignation: "",
+      alertrecipient: 0,
+      zone: "",
+      division: "",
+      station: "",
+      password: "",
+      is_active: true,
+      sendsms: 0,
+    });
+  };
+
+  const handleEdit = (user) => {
+    setFormData({
+      usertype: user.usertype,
+      userlevel: user.userlevel,
+      userrole: user.userrole,
+      username: user.username,
+      userphone: user.userphone,
+      usermail: user.usermail,
+      userdesignation: user.userdesignation,
+      alertrecipient: user.alertrecipient,
+      zone: user.zone,
+      division: user.division,
+      station: user.station,
+      password: user.password,
+      is_active: user.is_active,
+      sendsms: user.sendsms,
+    });
+    setEditingId(user.userid);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      await deleteUser(id);
+    }
+  };
+
+  // Helper to handle both plain arrays and paginated { results: [] }
+  const normalizeData = (d) => (d?.results ? d.results : d) || [];
+
   return (
-    <div className="min-h-screen mt-30 bg-gradient-to-br from-purple-50 to-pink-50 p-6">
-      <div className="w-full bg-white shadow-2xl rounded-2xl p-8">
-        <h1 className="text-3xl font-semibold text-gray-800 text-center mb-8">
-          Add User
-        </h1>
+    <div className="p-6 mt-10 min-h-screen bg-gray-100">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">User Management</h1>
 
-        {/* Form Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* Left Side */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                User Type
-              </label>
-              <div className="flex items-center gap-2">
-                <select className="flex-1 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400">
-                  <option>Admin</option>
-                  <option>User</option>
-                </select>
-                <button className="p-2 rounded-full bg-green-600 hover:bg-green-700 text-white transition">
-                  <Plus size={18} />
-                </button>
-              </div>
-            </div>
+      {/* Form */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-lg rounded-lg p-6 space-y-4"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <select
+            name="usertype"
+            value={formData.usertype || ""}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          >
+            <option value="">Select User Type</option>
+            {normalizeData(userTypes).map((ut) => (
+              <option key={ut.typeid} value={ut.typeid}>
+                {ut.typename}
+              </option>
+            ))}
+          </select>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Full Name
-              </label>
-              <input
-                type="text"
-                placeholder="Enter full name"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
+          <select
+            name="userlevel"
+            value={formData.userlevel || ""}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          >
+            <option value="">Select User Level</option>
+            {normalizeData(userLevels).map((lvl) => (
+              <option key={lvl.levelid} value={lvl.levelid}>
+                {lvl.levelname}
+              </option>
+            ))}
+          </select>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                placeholder="Enter password"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
+          <select
+            name="userrole"
+            value={formData.userrole || ""}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          >
+            <option value="">Select User Role</option>
+            {normalizeData(userRoles).map((role) => (
+              <option key={role.roleid} value={role.roleid}>
+                {role.rolename}
+              </option>
+            ))}
+          </select>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Phone
-              </label>
-              <input
-                type="text"
-                placeholder="Enter phone number"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
+          <select
+            name="zone"
+            value={formData.zone || ""}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          >
+            <option value="">Select Zone</option>
+            {normalizeData(zones).map((z) => (
+              <option key={z.zoneid} value={z.zoneid}>
+                {z.zonename}
+              </option>
+            ))}
+          </select>
 
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                User Role
-              </label>
-              <input
-                type="text"
-                placeholder="Enter role"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
+          <select
+            name="division"
+            value={formData.division || ""}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          >
+            <option value="">Select Division</option>
+            {normalizeData(divisions).map((d) => (
+              <option key={d.divisionid} value={d.divisionid}>
+                {d.divisionname}
+              </option>
+            ))}
+          </select>
 
-            {/* User Type Options */}
-            <div className="space-y-2">
-              <label className="block text-gray-700 font-medium mb-1">
-                User Category
-              </label>
-              <div className="flex items-center gap-3">
-                <input type="radio" name="userType" /> Zone User
-                <select className="border border-gray-300 rounded-lg p-2">
-                  <option>Northen Railway</option>
-                  <option>Southern Railway</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <input type="radio" name="userType" /> Division User
-              </div>
-              <div className="flex items-center gap-3">
-                <input type="radio" name="userType" /> Station User
-                <input
-                  type="text"
-                  placeholder="Enter station"
-                  className="flex-1 border border-gray-300 rounded-lg p-2"
-                />
-              </div>
-            </div>
-          </div>
+          <select
+            name="station"
+            value={formData.station || ""}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          >
+            <option value="">Select Station</option>
+            {normalizeData(stations).map((s) => (
+              <option key={s.stationid} value={s.stationid}>
+                {s.stationname}
+              </option>
+            ))}
+          </select>
 
-          {/* Right Side */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                User Level
-              </label>
-              <select className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Designation
-              </label>
-              <input
-                type="text"
-                placeholder="Enter designation"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                placeholder="Confirm password"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                placeholder="Enter email"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Alert Recipient
-              </label>
-              <div className="flex items-center gap-6">
-                <label className="flex items-center gap-2">
-                  <input type="radio" name="alert" /> Yes
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="radio" name="alert" /> No
-                </label>
-              </div>
-            </div>
-          </div>
+          <input
+            type="text"
+            name="username"
+            placeholder="Full Name"
+            value={formData.username}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          />
+          <input
+            type="text"
+            name="userphone"
+            placeholder="Phone"
+            value={formData.userphone}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          />
+          <input
+            type="email"
+            name="usermail"
+            placeholder="Email"
+            value={formData.usermail}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          />
+          <input
+            type="text"
+            name="userdesignation"
+            placeholder="Designation"
+            value={formData.userdesignation}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="border p-2 rounded"
+          />
         </div>
 
-        {/* Submit */}
-        <div className="mt-8">
-          <button className="w-full py-3 px-6 bg-fuchsia-700 hover:bg-fuchsia-800 text-white font-semibold rounded-lg shadow-md transition">
-            Add User
+        <button
+          type="submit"
+          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+        >
+          {editingId ? "Update User" : "Add User"}
+        </button>
+      </form>
+
+      {/* Table */}
+      <div className="mt-8 overflow-x-auto">
+        <table className="min-w-full bg-white border rounded shadow">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-3 py-2 border">Name</th>
+              <th className="px-3 py-2 border">Email</th>
+              <th className="px-3 py-2 border">Designation</th>
+              <th className="px-3 py-2 border">Zone</th>
+              <th className="px-3 py-2 border">Division</th>
+              <th className="px-3 py-2 border">Station</th>
+              <th className="px-3 py-2 border">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan="7" className="text-center p-4">
+                  Loading...
+                </td>
+              </tr>
+            ) : (
+              users?.results?.map((u) => (
+                <tr key={u.userid} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 border">{u.username}</td>
+                  <td className="px-3 py-2 border">{u.usermail}</td>
+                  <td className="px-3 py-2 border">{u.userdesignation}</td>
+                  <td className="px-3 py-2 border">{u.zone_name}</td>
+                  <td className="px-3 py-2 border">{u.division_name}</td>
+                  <td className="px-3 py-2 border">{u.station_name}</td>
+                  <td className="px-3 py-2 border flex space-x-2">
+                    <button
+                      onClick={() => handleEdit(u)}
+                      className="bg-yellow-400 text-white px-2 py-1 rounded"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(u.userid)}
+                      className="bg-red-500 text-white px-2 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {/* Pagination */}
+        <div className="flex justify-center items-center mt-4 space-x-4">
+          <button
+            disabled={!users?.previous}
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span>
+            Page {page} of {Math.ceil(users?.count / pageSize) || 1}
+          </span>
+          <button
+            disabled={!users?.next}
+            onClick={() => setPage((p) => p + 1)}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Next
           </button>
         </div>
       </div>

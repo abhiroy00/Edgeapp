@@ -4,6 +4,10 @@ import { stationApi } from "../features/location/station/stationApi";
 import { entityApi } from "../features/location/entity/entityApi";
 import { userTypeApi } from "../features/user/user_type/userTypeApi";
 import { userRoleApi } from "../features/user/user_role/userRoleApi";
+import { userApi } from "../features/user/users/userApi";
+import { zoneApi } from "../features/location/zone/zoneApi";
+import { userLevelApi } from "../features/user/user_level/userLevelApi";
+
 
 const store = configureStore({
   reducer: {
@@ -11,7 +15,12 @@ const store = configureStore({
     [stationApi.reducerPath]: stationApi.reducer,
     [entityApi.reducerPath]: entityApi.reducer,
     [userTypeApi.reducerPath]: userTypeApi.reducer,
-    [userRoleApi.reducerPath]:userRoleApi.reducer
+    [userRoleApi.reducerPath]:userRoleApi.reducer,
+    [userApi.reducerPath]:userApi.reducer,
+    [zoneApi.reducerPath]:zoneApi.reducer,
+    [userLevelApi.reducerPath]:userLevelApi.reducer
+
+
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
@@ -20,6 +29,9 @@ const store = configureStore({
       .concat(entityApi.middleware)
       .concat(userTypeApi.middleware)
       .concat(userRoleApi.middleware)
+      .concat(userApi.middleware)
+      .concat(zoneApi.middleware)
+      .concat(userLevelApi.middleware)
       , // ✅ added this
 });
 

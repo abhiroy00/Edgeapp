@@ -1,30 +1,30 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-export const stationApi = createApi({
-  reducerPath: "stationApi",
+export const userLevelApi = createApi({
+  reducerPath: "userLevelApi",
   baseQuery: fetchBaseQuery({ baseUrl: "http://127.0.0.1:8000/api/" }),
   endpoints: (builder) => ({
-    getStations: builder.query({
+    getUserLevels: builder.query({
       query: ({ page = 1, pageSize = 10 } = {}) =>
-        `stations/?page=${page}&page_size=${pageSize}`,
+        `userlevels/?page=${page}&page_size=${pageSize}`,
     }),
-    createStation: builder.mutation({
+    createUserLevel: builder.mutation({
       query: (data) => ({
-        url: "stations/",
+        url: "userlevels/",
         method: "POST",
         body: data,
       }),
     }),
-    updateStation: builder.mutation({
+    updateUserLevel: builder.mutation({
       query: ({ id, ...data }) => ({
-        url: `stations/${id}/`,
+        url: `userlevels/${id}/`,
         method: "PUT",
         body: data,
       }),
     }),
-    deleteStation: builder.mutation({
+    deleteUserLevel: builder.mutation({
       query: (id) => ({
-        url: `stations/${id}/`,
+        url: `userlevels/${id}/`,
         method: "DELETE",
       }),
     }),
@@ -32,8 +32,8 @@ export const stationApi = createApi({
 });
 
 export const {
-  useGetStationsQuery,
-  useCreateStationMutation,
-  useUpdateStationMutation,
-  useDeleteStationMutation,
-} = stationApi;
+  useGetUserLevelsQuery,
+  useCreateUserLevelMutation,
+  useUpdateUserLevelMutation,
+  useDeleteUserLevelMutation,
+} = userLevelApi;
