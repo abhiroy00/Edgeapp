@@ -3,9 +3,12 @@ from junction.models import junctionboxmaster
 from Location.models import StationEntitiesMaster
 
 
-class junctionboxmasterserializer(serializers.ModelSerializer):
+class JunctionBoxMasterSerializer(serializers.ModelSerializer):
 
-    stationentity=serializers.PrimaryKeyRelatedField(queryset=StationEntitiesMaster.objects.all())
+    stationentity=serializers.CharField(source="stationentity.entityname", read_only=True)
+    stationentity = serializers.PrimaryKeyRelatedField(
+        queryset=StationEntitiesMaster.objects.all()
+    )
     class Meta:
         model = junctionboxmaster
         fields = '__all__'
