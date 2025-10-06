@@ -36,6 +36,10 @@ export default function App() {
       path: "/",
       element: <MainPage />,
       children: [
+      {
+      index: true,  
+      element: <Dashboard />
+       },
         {
           path: "/dashboard",
           element: <Dashboard />
