@@ -4,8 +4,17 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from junction.models import junctionboxmaster,Logicalassetmaster
-from junction.serializer import JunctionBoxMasterSerializer,LogicalassetmasterSerializer
+from django.db.models import Q
+from junction.models import (junctionboxmaster,
+                             Logicalassetmaster,
+                             Unitofmeasurementmaster,
+                             Severitymaster
+                             )
+from junction.serializer import (JunctionBoxMasterSerializer,
+                                 LogicalassetmasterSerializer,
+                                 UnitofmeasurementmasterSerializer,
+                                 SeveritymasterSerializer
+                                 )
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -105,6 +114,113 @@ class LogicalassetmasterAPIView(APIView):
     def delete(self, request, pk):
         logical_asset = get_object_or_404(Logicalassetmaster, pk=pk)
         logical_asset.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+# ✅ Pagination class
+class UnitPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+# ✅ CRUD + Search API
+class UnitofmeasurementmasterAPIView(APIView):
+    pagination_class = UnitPagination
+
+    def get(self, request, pk=None):
+        if pk:
+            # Single record
+            unit = get_object_or_404(Unitofmeasurementmaster, pk=pk)
+            serializer = UnitofmeasurementmasterSerializer(unit)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # 🔍 Search functionality
+        search_query = request.GET.get('search', '').strip()
+
+        queryset = Unitofmeasurementmaster.objects.all().order_by('uid')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(unitmeasurename__icontains=search_query) |
+                Q(abbrivation__icontains=search_query) |
+                Q(sensortype__icontains=search_query)
+            )
+
+        # ✅ Pagination
+        paginator = self.pagination_class()
+        paginated_units = paginator.paginate_queryset(queryset, request)
+        serializer = UnitofmeasurementmasterSerializer(paginated_units, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request):
+        serializer = UnitofmeasurementmasterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        unit = get_object_or_404(Unitofmeasurementmaster, pk=pk)
+        serializer = UnitofmeasurementmasterSerializer(unit, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        unit = get_object_or_404(Unitofmeasurementmaster, pk=pk)
+        unit.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SeverityPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+# ✅ CRUD + Search API View
+class SeveritymasterAPIView(APIView):
+    pagination_class = SeverityPagination
+
+    def get(self, request, pk=None):
+        if pk:
+            # Get single record
+            severity = get_object_or_404(Severitymaster, pk=pk)
+            serializer = SeveritymasterSerializer(severity)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # 🔍 Search filter
+        search_query = request.GET.get('search', '').strip()
+        queryset = Severitymaster.objects.all().order_by('rid')
+
+        if search_query:
+            queryset = queryset.filter(Q(severitystring__icontains=search_query))
+
+        # ✅ Pagination
+        paginator = self.pagination_class()
+        paginated_data = paginator.paginate_queryset(queryset, request)
+        serializer = SeveritymasterSerializer(paginated_data, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request):
+        serializer = SeveritymasterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        severity = get_object_or_404(Severitymaster, pk=pk)
+        serializer = SeveritymasterSerializer(severity, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        severity = get_object_or_404(Severitymaster, pk=pk)
+        severity.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

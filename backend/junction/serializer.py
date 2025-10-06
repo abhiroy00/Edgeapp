@@ -21,13 +21,11 @@ class LogicalassetmasterSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UnitofmeasurementmasterSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Unitofmeasurementmaster
         fields = '__all__'
 
 class SeveritymasterSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Severitymaster
         fields = '__all__'

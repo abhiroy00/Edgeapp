@@ -44,7 +44,7 @@ export default function ProfileSettings() {
           <img
             src={profile.profilePic}
             alt="Profile"
-            className="w-28 h-28 rounded-full object-cover border-4 border-fuchsia-900"
+            className="w-28 h-28 rounded-full object-contain border-4 border-fuchsia-900"
           />
           <label className="mt-3 cursor-pointer text-fuchsia-900 font-semibold">
             Change Picture

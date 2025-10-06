@@ -25,7 +25,7 @@ export default function ProfileView() {
             <img
               src={user.avatar}
               alt="Profile Avatar"
-              className="w-28 h-28 rounded-2xl shadow-md border-4 border-white object-cover"
+              className="w-28 h-28 rounded-2xl shadow-md border-4 border-white object-contain"
             />
             <span className="absolute bottom-2 right-2 w-5 h-5 bg-green-400 border-2 border-white rounded-full"></span>
           </div>
