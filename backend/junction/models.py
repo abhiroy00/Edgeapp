@@ -11,3 +11,14 @@ class junctionboxmaster(models.Model):
 
     def __str__(self):
         return f"{self.junctionname}"
+    
+    
+class Logicalassetmaster(models.Model):
+    logicalassetid = models.AutoField(primary_key=True)
+    logicalassetname = models.TextField(blank=True, null=False)
+    prefixcode = models.CharField(max_length=20, null=False)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.logicalassetname}"
+    

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from junction.models import junctionboxmaster
+from junction.models import junctionboxmaster,Logicalassetmaster
 from Location.models import StationEntitiesMaster
 
 
@@ -12,3 +12,12 @@ class JunctionBoxMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = junctionboxmaster
         fields = '__all__'
+
+
+class LogicalassetmasterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Logicalassetmaster
+        fields = '__all__'
+        
+
