@@ -17,6 +17,12 @@ export default function LeftSidebar() {
   };
 
   const dashboardItems = [{ name: 'Overview', path: '/dashboard' }];
+
+  const plannerItems = [
+    { name: 'Task Assign', path: '/planner/taskassign' },
+    { name: 'Feedback', path: '/planner/taskfeedback' },
+  ];
+
   const reportsItems = [
     { name: 'Alarm', path: '/report/alarm' },
     { name: 'Analysis', path: '/report/analaysis' },
@@ -134,18 +140,17 @@ export default function LeftSidebar() {
             ))}
         </div>
 
-
-
-           <div>
+        {/* Planner */}
+        <div>
           <div
             className="p-3 rounded-lg hover:bg-fuchsia-900 cursor-pointer flex items-center justify-between"
-            onClick={() => toggleDropdown('dashboard')}
+            onClick={() => toggleDropdown('planner')}
           >
             <span>Planner</span>
-            <ArrowIcon open={openDropdown === 'dashboard'} />
+            <ArrowIcon open={openDropdown === 'planner'} />
           </div>
-          {openDropdown === 'dashboard' &&
-            dashboardItems.map((item, idx) => (
+          {openDropdown === 'planner' &&
+            plannerItems.map((item, idx) => (
               <Link
                 key={idx}
                 to={item.path}

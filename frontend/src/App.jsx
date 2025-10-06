@@ -28,7 +28,11 @@ import Asset_Downtime_History from './features/asset/asset_master/asset_downtime
 import Asset_MTBF_MTTR from './features/asset/asset_master/asset_mtbf_mttr.jsx/Asset_MTBF_MTTR'
 import AssetPerformance from './features/asset/asset_master/asset_performance/AssetPerformance'
 import Entity from './features/location/entity/Entity'
-
+import Planner from './features/planner/Planner'
+import TaskAssign from './features/planner/taskassign/TaskAssign'
+import Feedback from './features/planner/feedback/Feedback'
+import ProfileSettings from './features/profile/profile_setting/ProfileSetting'
+import ProfileView from './features/profile/profile_setting/ProfileView'
 
 export default function App() {
   const router = createBrowserRouter([
@@ -152,7 +156,29 @@ export default function App() {
         {
           path:"/report/system",
           element:<ReportSystem></ReportSystem>
+        },
+        {
+          path:"/planner",
+          element:<Planner></Planner>
+
+        },
+        {
+          path:"/planner/taskassign",
+          element:<TaskAssign></TaskAssign>
+        },
+        {
+          path:"/planner/taskfeedback",
+          element:<Feedback></Feedback>
+        },
+        {
+          path: "/user/profile",
+           element: <ProfileSettings></ProfileSettings>
+        },
+        {
+          path:"/user/profileview",
+          element:<ProfileView></ProfileView>
         }
+
       ]
     }
   ]);
