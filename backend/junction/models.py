@@ -22,3 +22,24 @@ class Logicalassetmaster(models.Model):
     def __str__(self):
         return f"{self.logicalassetname}"
     
+class Unitofmeasurementmaster(models.Model):
+    uid = models.AutoField(primary_key=True)
+    unitmeasurename = models.TextField(blank=True, null=False)
+    abbrivation = models.TextField(blank=True, null=True)
+    zeroafterdecimal = models.IntegerField()
+    sensortype = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.unitmeasurename}"
+
+
+class Severitymaster(models.Model):
+    rid = models.AutoField(primary_key=True)
+    severitystring = models.TextField(blank=True, null=False)
+
+    def __str__(self):
+        return f"{self.severitystring}"
+    
+
+    
+
