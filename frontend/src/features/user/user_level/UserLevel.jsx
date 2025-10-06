@@ -62,7 +62,7 @@ export default function UserLevel() {
   };
 
   return (
-    <div className="w-full p-8 mt-10">
+    <div className="w-full p-8 mt-30">
       {/* Header */}
       <div className="w-full shadow-lg rounded-lg p-6 mb-8 bg-blue-100 border border-blue-300">
         <h1 className="text-3xl font-bold text-blue-700">User Level Master</h1>

@@ -5,7 +5,7 @@ import {
   useUpdateStationMutation,
   useDeleteStationMutation,
 } from "./stationApi";
-import { useGetDivisionsQuery } from "../division/divisionApi"; // ✅ import division API
+import { useGetDivisionsQuery } from "../division/divisionApi";
 
 export default function Station() {
   const [page, setPage] = useState(1);
@@ -24,7 +24,7 @@ export default function Station() {
     page_size: 5,
     search,
   });
-  const { data: divisions } = useGetDivisionsQuery(); // ✅ fetch divisions
+  const { data: divisions } = useGetDivisionsQuery();
 
   const [createStation] = useCreateStationMutation();
   const [updateStation] = useUpdateStationMutation();
@@ -32,19 +32,24 @@ export default function Station() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingId) {
-      await updateStation({ id: editingId, ...formData });
-      setEditingId(null);
-    } else {
-      await createStation(formData);
+    try {
+      if (editingId) {
+        await updateStation({ id: editingId, ...formData }).unwrap();
+        setEditingId(null);
+      } else {
+        await createStation(formData).unwrap();
+      }
+
+      setFormData({
+        stationname: "",
+        stationdesc: "",
+        division: "",
+        prefixcode: "",
+        is_active: true,
+      });
+    } catch (error) {
+      console.error("Error saving station:", error);
     }
-    setFormData({
-      stationname: "",
-      stationdesc: "",
-      division: "",
-      prefixcode: "",
-      is_active: true,
-    });
   };
 
   const handleEdit = (station) => {
@@ -53,20 +58,28 @@ export default function Station() {
   };
 
   const handleDelete = async (id) => {
-    await deleteStation(id);
+    try {
+      await deleteStation(id).unwrap();
+    } catch (error) {
+      console.error("Error deleting station:", error);
+    }
   };
 
-  if (isLoading) return <p className="text-center mt-10 text-lg">Loading...</p>;
-  if (isError) return <p className="text-center mt-10 text-red-600">Error loading stations.</p>;
+  if (isLoading)
+    return <p className="text-center mt-10 text-lg">Loading...</p>;
+  if (isError)
+    return (
+      <p className="text-center mt-10 text-red-600">Error loading stations.</p>
+    );
 
   return (
     <div className="w-full mt-30 bg-gray-100 flex justify-center py-10">
-     <div className="w-full max-w-7xl bg-white shadow-xl rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5 ">
-  🚉 Stations Management
-</h1>
+      <div className="w-full max-w-7xl bg-white shadow-xl rounded-lg p-8">
+        <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5">
+          🚉 Stations Management
+        </h1>
 
-        {/* 🔎 Search */}
+        {/* Search */}
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
@@ -80,13 +93,15 @@ export default function Station() {
           />
         </div>
 
-        {/* 📝 Form */}
+        {/* Form */}
         <form
           onSubmit={handleSubmit}
           className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-6 rounded-lg shadow-inner"
         >
           <div>
-            <label className="block mb-1 text-sm font-semibold">Station Name</label>
+            <label className="block mb-1 text-sm font-semibold">
+              Station Name
+            </label>
             <input
               type="text"
               value={formData.stationname}
@@ -99,7 +114,9 @@ export default function Station() {
           </div>
 
           <div>
-            <label className="block mb-1 text-sm font-semibold">Station Description</label>
+            <label className="block mb-1 text-sm font-semibold">
+              Station Description
+            </label>
             <input
               type="text"
               value={formData.stationdesc}
@@ -157,15 +174,16 @@ export default function Station() {
           </div>
 
           <div className="flex items-end">
-          <button
-  type="submit"
-  className="bg-[oklch(0.48_0.27_303.85)] hover:bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md transition">
-  {editingId ? "Update Station" : "Add Station"}
-</button>
+            <button
+              type="submit"
+              className="bg-[oklch(0.48_0.27_303.85)] hover:bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md transition"
+            >
+              {editingId ? "Update Station" : "Add Station"}
+            </button>
           </div>
         </form>
 
-        {/* 📋 Table */}
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
             <thead className="bg-blue-100">
@@ -191,7 +209,7 @@ export default function Station() {
                   >
                     <td className="px-4 py-2">{station.stationname}</td>
                     <td className="px-4 py-2">{station.stationdesc}</td>
-                    <td className="px-4 py-2">{divisionName}</td> {/* ✅ show name */}
+                    <td className="px-4 py-2">{divisionName}</td>
                     <td className="px-4 py-2">{station.prefixcode}</td>
                     <td className="px-4 py-2">
                       {station.is_active ? (
@@ -219,7 +237,7 @@ export default function Station() {
           </table>
         </div>
 
-        {/* 📌 Pagination */}
+        {/* Pagination */}
         <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
           <p>
             Showing {data?.results?.length || 0} of {data?.count || 0} entries
