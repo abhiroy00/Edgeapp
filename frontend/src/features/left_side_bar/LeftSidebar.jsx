@@ -32,11 +32,11 @@ export default function LeftSidebar() {
   ];
 
   const locationItems = [
-    { name: 'Division', path: '/location/divison' },
     { name: 'Zone', path: '/location/zone' },
-    { name: 'Entity', path: '/location/entity' },
-    { name: 'Rack', path: '/location/rack' },
+    { name: 'Division', path: '/location/divison' },
     { name: 'Station', path: '/location/station' },
+    { name: 'Entity', path: '/location/entity' },
+    { name: 'Junction Box', path: '/location/rack' },
   ];
 
   const assetItems = [

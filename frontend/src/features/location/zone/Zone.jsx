@@ -59,26 +59,26 @@ export default function Zone() {
 
   return (
     <div className="w-full p-8 mt-10">
-      <div className="w-full shadow-lg rounded-lg p-6 mb-8 bg-green-100 border border-green-300">
-        <h1 className="text-3xl font-bold text-green-700">🌍 Zone Master</h1>
+      <div className="w-full shadow-lg rounded-lg p-6 mb-8 bg-blue-100 border border-blue-300">
+        <h1 className="text-3xl font-bold text-[oklch(0.45_0.15_323.42)]">🌍 Zone Master</h1>
         <p className="text-gray-700 mt-1">Manage your zones.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-xl p-6 w-full space-y-5 border border-gray-200">
-        <input type="text" name="zonename" value={formData.zonename} onChange={handleChange} placeholder="Zone Name" required className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-green-400 outline-none" />
-        <textarea name="zonedesc" value={formData.zonedesc} onChange={handleChange} placeholder="Zone Description" className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-green-400 outline-none" />
-        <input type="text" name="prefixcode" value={formData.prefixcode} onChange={handleChange} placeholder="Prefix Code" required className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-green-400 outline-none" />
-        <select name="is_active" value={formData.is_active} onChange={handleChange} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-green-400 outline-none">
+        <input type="text" name="zonename" value={formData.zonename} onChange={handleChange} placeholder="Zone Name" required className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-fuchsia-300 outline-none" />
+        <textarea name="zonedesc" value={formData.zonedesc} onChange={handleChange} placeholder="Zone Description" className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-fuchsia-300 outline-none" />
+        <input type="text" name="prefixcode" value={formData.prefixcode} onChange={handleChange} placeholder="Prefix Code" required className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-fuchsia-300 outline-none" />
+        <select name="is_active" value={formData.is_active} onChange={handleChange} className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-fuchsia-300 outline-none">
           <option value="true">Active</option>
           <option value="false">Inactive</option>
         </select>
-        <button type="submit" className={`w-full py-3 rounded-lg text-white ${editingId ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700"}`}>
+        <button type="submit" className={`w-full py-3 rounded-lg text-white ${editingId ? "bg-[oklch(0.45_0.15_323.42)] hover:bg-[oklch(0.42_0.15_323.42)]" : "bg-[oklch(0.45_0.15_323.42)] hover:bg-[oklch(0.42_0.15_323.42)]"}`}>
           {editingId ? "✏️ Update Zone" : "➕ Add Zone"}
         </button>
       </form>
 
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-green-700 mb-5">📋 Existing Zones</h2>
+        <h2 className="text-2xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5">📋 Existing Zones</h2>
         {isLoading ? (
           <p>Loading...</p>
         ) : data.length === 0 ? (
