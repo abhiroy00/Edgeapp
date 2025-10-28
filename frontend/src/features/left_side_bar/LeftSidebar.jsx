@@ -37,13 +37,15 @@ export default function LeftSidebar() {
     { name: 'Station', path: '/location/station' },
     { name: 'Entity', path: '/location/entity' },
     { name: 'Junction Box', path: '/location/rack' },
+    { name: 'Unit of Measurement', path: '' },
+    { name: 'Severity Master', path: ''}
   ];
 
   const assetItems = [
     { name: 'Asset Master', path: '/alarm/assetmaster' },
     { name: 'Asset Inventory', path: '/alarm/inventory' },
-    { name: 'Asset Attributes', path: '/alarm/assetattribute' },
-    { name: 'Alarm Setup', path: '/alarm/alarmsetup' },
+    { name: 'Asset Attributes Master', path: '/alarm/assetattribute' },
+    { name: 'Asset Attribute Link', path: '/alarm/alarmsetup' },
     { name: 'Alarm Creation', path: '/alarm/alarmcreation' },
   ];
 
