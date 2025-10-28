@@ -33,6 +33,9 @@ import TaskAssign from './features/planner/taskassign/TaskAssign'
 import Feedback from './features/planner/feedback/Feedback'
 import ProfileSettings from './features/profile/profile_setting/ProfileSetting'
 import ProfileView from './features/profile/profile_setting/ProfileView'
+import Unitofmeasurement from './features/unit_of_measurement/Unitofmeasurement'
+import Severitymaster from './features/severity_master/Severitymaster'
+import Taskmaster from './features/task_master/Taskmaster'
 
 export default function App() {
   const router = createBrowserRouter([
@@ -72,6 +75,16 @@ export default function App() {
         {
           path:"/user/userlevel",
           element:<UserLevel></UserLevel>
+        },
+        {
+          path:"/location/uom",
+          element:<Unitofmeasurement></Unitofmeasurement>
+
+        },
+        {
+          path:"/location/severitymaster",
+          element:<Severitymaster></Severitymaster>
+
         },
         {
           path:"/user/userrole",
@@ -177,6 +190,10 @@ export default function App() {
         {
           path:"/user/profileview",
           element:<ProfileView></ProfileView>
+        },
+        {
+          path:"/maintenance/taskmaster",
+          element:<Taskmaster></Taskmaster>
         }
 
       ]

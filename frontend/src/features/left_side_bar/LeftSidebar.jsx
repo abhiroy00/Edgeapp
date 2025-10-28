@@ -37,8 +37,8 @@ export default function LeftSidebar() {
     { name: 'Station', path: '/location/station' },
     { name: 'Entity', path: '/location/entity' },
     { name: 'Junction Box', path: '/location/rack' },
-    { name: 'Unit of Measurement', path: '' },
-    { name: 'Severity Master', path: ''}
+    { name: 'Unit of Measurement', path: '/location/uom' },
+    { name: 'Severity Master', path: '/location/severitymaster'}
   ];
 
   const assetItems = [
@@ -57,11 +57,19 @@ export default function LeftSidebar() {
   ];
 
   const configurationItems = [
-    { name: 'Location Setup', key: 'locationSetup', subItems: locationItems },
-    { name: 'Assets', key: 'assets', subItems: assetItems },
-    { name: 'User', key: 'userMenu', subItems: userItems },
-    { name: 'Maintenance', path: '/maintenance' },
-  ];
+  { name: 'Location Setup', key: 'locationSetup', subItems: locationItems },
+  { name: 'Assets', key: 'assets', subItems: assetItems },
+  { name: 'User', key: 'userMenu', subItems: userItems },
+  {
+    name: 'Maintenance',
+    key: 'maintenance',
+    subItems: [
+      { name: 'Task Master', path: '/maintenance/taskmaster' },
+      { name: 'Corrective Maintenance', path: '/maintenance/corrective' },
+      { name: 'Maintenance Schedule', path: '/maintenance/schedule' },
+    ],
+  },
+];
 
   const ArrowIcon = ({ open }) => (
     <svg
