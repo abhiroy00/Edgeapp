@@ -36,6 +36,11 @@ import ProfileView from './features/profile/profile_setting/ProfileView'
 import Unitofmeasurement from './features/unit_of_measurement/Unitofmeasurement'
 import Severitymaster from './features/severity_master/Severitymaster'
 import Taskmaster from './features/task_master/Taskmaster'
+import Typemaster from './features/type_master/Typemaster'
+import Statusmaster from './features/status_master/Statusmaster'
+import Schedulecreation from './features/schedulecreation/Schedulecreation'
+import { Rose } from 'lucide-react'
+import Roster from './features/roster/Roster'
 
 export default function App() {
   const router = createBrowserRouter([
@@ -194,7 +199,24 @@ export default function App() {
         {
           path:"/maintenance/taskmaster",
           element:<Taskmaster></Taskmaster>
+        },
+        {
+          path:"/maintenance/typemaster",
+          element:<Typemaster></Typemaster>
+        },
+        {
+          path:"/maintenance/statusmaster",
+          element:<Statusmaster></Statusmaster>
+        },
+        {
+          path:"/maintenance/schedulecreation",
+          element:<Schedulecreation></Schedulecreation>
+        },
+        {
+          path:"/maintenance/roster",
+          element:<Roster></Roster>
         }
+
 
       ]
     }

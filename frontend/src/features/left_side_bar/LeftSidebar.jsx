@@ -65,8 +65,11 @@ export default function LeftSidebar() {
     key: 'maintenance',
     subItems: [
       { name: 'Task Master', path: '/maintenance/taskmaster' },
-      { name: 'Corrective Maintenance', path: '/maintenance/corrective' },
-      { name: 'Maintenance Schedule', path: '/maintenance/schedule' },
+      { name: 'Type Master', path: '/maintenance/typemaster' },
+      { name: 'Status Master', path: '/maintenance/statusmaster' },
+      { name: 'Schedule Creation', path: '/maintenance/schedulecreation' },
+      { name: 'Roster', path: '/maintenance/roster' }
+
     ],
   },
 ];
