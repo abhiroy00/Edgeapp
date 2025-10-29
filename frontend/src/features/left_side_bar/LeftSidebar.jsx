@@ -19,8 +19,11 @@ export default function LeftSidebar() {
   const dashboardItems = [{ name: 'Overview', path: '/dashboard' }];
 
   const plannerItems = [
+    { name: 'Schedule Creation', path: '/maintenance/schedulecreation' },
+    { name: 'Roster', path: '/maintenance/roster' },
     { name: 'Task Assign', path: '/planner/taskassign' },
     { name: 'Feedback', path: '/planner/taskfeedback' },
+
   ];
 
   const reportsItems = [
@@ -67,8 +70,7 @@ export default function LeftSidebar() {
       { name: 'Task Master', path: '/maintenance/taskmaster' },
       { name: 'Type Master', path: '/maintenance/typemaster' },
       { name: 'Status Master', path: '/maintenance/statusmaster' },
-      { name: 'Schedule Creation', path: '/maintenance/schedulecreation' },
-      { name: 'Roster', path: '/maintenance/roster' }
+    
 
     ],
   },
