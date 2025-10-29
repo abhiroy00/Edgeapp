@@ -7,6 +7,7 @@ import { userRoleApi } from "../features/user/user_role/userRoleApi";
 import { userApi } from "../features/user/users/userApi";
 import { zoneApi } from "../features/location/zone/zoneApi";
 import { userLevelApi } from "../features/user/user_level/userLevelApi";
+import { rackApi } from "../features/location/rack/rackApi";
 
 
 const store = configureStore({
@@ -18,7 +19,9 @@ const store = configureStore({
     [userRoleApi.reducerPath]:userRoleApi.reducer,
     [userApi.reducerPath]:userApi.reducer,
     [zoneApi.reducerPath]:zoneApi.reducer,
-    [userLevelApi.reducerPath]:userLevelApi.reducer
+    [userLevelApi.reducerPath]:userLevelApi.reducer,
+    [rackApi.reducerPath]: rackApi.reducer, 
+
 
 
   },
@@ -32,7 +35,8 @@ const store = configureStore({
       .concat(userApi.middleware)
       .concat(zoneApi.middleware)
       .concat(userLevelApi.middleware)
-      , // ✅ added this
+       .concat(rackApi.middleware),   
+      
 });
 
 export default store;
