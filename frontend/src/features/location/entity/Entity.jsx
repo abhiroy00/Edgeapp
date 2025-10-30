@@ -5,7 +5,7 @@ import {
   useUpdateEntityMutation,
   useDeleteEntityMutation,
 } from "./entityApi";
-import { useGetStationsQuery } from "../station/stationApi"; // ✅ import station API
+import { useGetAllStationsQuery } from "../station/stationApi"; // ✅ import station API
 
 export default function Entity() {
   const [page, setPage] = useState(1);
@@ -30,11 +30,12 @@ export default function Entity() {
   const [deleteEntity] = useDeleteEntityMutation();
 
   // Stations (for dropdown)
-  const {
-    data: stations,
-    isLoading: stationLoading,
-    isError: stationError,
-  } = useGetStationsQuery({ page: 1, page_size: 50 });
+const {
+  data: stations,
+  isLoading: stationLoading,
+  isError: stationError,
+} = useGetAllStationsQuery();
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

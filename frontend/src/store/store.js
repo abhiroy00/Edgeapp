@@ -10,6 +10,7 @@ import { userLevelApi } from "../features/user/user_level/userLevelApi";
 import { rackApi } from "../features/location/rack/rackApi";
 import { unitOfMeasurementApi } from "../features/unit_of_measurement/unitofmesurementApi";
 import {severityApi } from '../features/severity_master/SeveritymasterApi'
+import { assetMasterApi } from "../features/asset/asset_master/assetmasterApi";
 
 
 const store = configureStore({
@@ -24,10 +25,9 @@ const store = configureStore({
     [userLevelApi.reducerPath]:userLevelApi.reducer,
     [rackApi.reducerPath]: rackApi.reducer,
     [unitOfMeasurementApi.reducerPath]:unitOfMeasurementApi.reducer,
-    [severityApi.reducerPath]:severityApi.reducer
+    [severityApi.reducerPath]:severityApi.reducer,
+    [assetMasterApi.reducerPath]:assetMasterApi.reducer
    
-
-
 
   },
   middleware: (getDefaultMiddleware) =>
@@ -42,7 +42,8 @@ const store = configureStore({
       .concat(userLevelApi.middleware)
       .concat(rackApi.middleware)
       .concat(unitOfMeasurementApi.middleware)
-      .concat(severityApi.middleware)
+      .concat(severityApi .middleware)
+      .concat(assetMasterApi.middleware)
       ,
 
 
