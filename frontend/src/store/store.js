@@ -8,6 +8,8 @@ import { userApi } from "../features/user/users/userApi";
 import { zoneApi } from "../features/location/zone/zoneApi";
 import { userLevelApi } from "../features/user/user_level/userLevelApi";
 import { rackApi } from "../features/location/rack/rackApi";
+import { unitOfMeasurementApi } from "../features/unit_of_measurement/unitofmesurementApi";
+import {severityApi } from '../features/severity_master/SeveritymasterApi'
 
 
 const store = configureStore({
@@ -20,7 +22,10 @@ const store = configureStore({
     [userApi.reducerPath]:userApi.reducer,
     [zoneApi.reducerPath]:zoneApi.reducer,
     [userLevelApi.reducerPath]:userLevelApi.reducer,
-    [rackApi.reducerPath]: rackApi.reducer, 
+    [rackApi.reducerPath]: rackApi.reducer,
+    [unitOfMeasurementApi.reducerPath]:unitOfMeasurementApi.reducer,
+    [severityApi.reducerPath]:severityApi.reducer
+   
 
 
 
@@ -35,7 +40,12 @@ const store = configureStore({
       .concat(userApi.middleware)
       .concat(zoneApi.middleware)
       .concat(userLevelApi.middleware)
-       .concat(rackApi.middleware),   
+      .concat(rackApi.middleware)
+      .concat(unitOfMeasurementApi.middleware)
+      .concat(severityApi.middleware)
+      ,
+
+
       
 });
 

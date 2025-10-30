@@ -4,8 +4,9 @@ import {
   useCreateJunctionBoxMutation,
   useUpdateJunctionBoxMutation,
   useDeleteJunctionBoxMutation,
-  useGetStationsQuery,
 } from "../rack/rackApi";
+
+import { useGetEntitiesQuery } from "../entity/entityApi";
 
 export default function Rack() {
   const [search, setSearch] = useState("");
@@ -21,7 +22,14 @@ export default function Rack() {
   });
 
   const { data, isLoading } = useGetJunctionBoxesQuery({ page, search });
-  const { data: stations } = useGetStationsQuery();
+
+  // ✅ IMPORTANT: pass parameters to useGetEntitiesQuery
+  const { data: entity } = useGetEntitiesQuery({
+    page: 1,
+    page_size: 100,
+    search: "",
+  });
+
   const [createJunctionBox] = useCreateJunctionBoxMutation();
   const [updateJunctionBox] = useUpdateJunctionBoxMutation();
   const [deleteJunctionBox] = useDeleteJunctionBoxMutation();
@@ -34,7 +42,10 @@ export default function Rack() {
     e.preventDefault();
 
     const payload = {
-      ...formData,
+      junctionname: formData.junctionname.trim(),
+      junctiondesc: formData.junctiondesc.trim(),
+      stationentity: Number(formData.stationentity),
+      prefixcode: formData.prefixcode.trim(),
       is_active: formData.is_active === "true",
     };
 
@@ -54,7 +65,8 @@ export default function Rack() {
       });
       setEditingId(null);
     } catch (error) {
-      console.log("Error:", error);
+      console.log("Error:", error?.data);
+      alert("Error: " + JSON.stringify(error?.data));
     }
   };
 
@@ -120,8 +132,9 @@ export default function Rack() {
             />
           </div>
 
+          {/* ✅ DROPDOWN - ENTITY */}
           <div>
-            <label className="block mb-1 font-semibold">Station</label>
+            <label className="block mb-1 font-semibold">Entity</label>
             <select
               name="stationentity"
               value={formData.stationentity}
@@ -129,12 +142,17 @@ export default function Rack() {
               className="border p-2 w-full rounded"
               required
             >
-              <option value="">Select Station</option>
-              {stations?.results?.map((s) => (
-                <option key={s.stationid} value={s.stationid}>
-                  {s.stationname}
-                </option>
-              ))}
+              <option value="">Select Entity</option>
+
+              {entity?.results?.length > 0 ? (
+                entity.results.map((e) => (
+                  <option key={e.entityid} value={e.entityid}>
+                    {e.entityname}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No Entities Found</option>
+              )}
             </select>
           </div>
 
@@ -177,7 +195,7 @@ export default function Rack() {
               <tr>
                 <th className="px-4 py-2">Name</th>
                 <th className="px-4 py-2">Description</th>
-                <th className="px-4 py-2">Station</th>
+                <th className="px-4 py-2">Entity</th>
                 <th className="px-4 py-2">Prefix</th>
                 <th className="px-4 py-2">Active</th>
                 <th className="px-4 py-2">Edit</th>
@@ -191,10 +209,13 @@ export default function Rack() {
                   <td className="px-4 py-2">{item.junctionname}</td>
                   <td className="px-4 py-2">{item.junctiondesc || "—"}</td>
 
+                  {/* ✅ Display Entity Name */}
                   <td className="px-4 py-2">
-                    {stations?.results?.find(
-                      (s) => s.stationid === item.stationentity
-                    )?.stationname || "—"}
+                    {
+                      entity?.results?.find(
+                        (e) => e.entityid === item.stationentity
+                      )?.entityname || "—"
+                    }
                   </td>
 
                   <td className="px-4 py-2">{item.prefixcode}</td>
