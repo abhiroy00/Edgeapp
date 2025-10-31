@@ -12,7 +12,7 @@ class AssetMaster(models.Model):
     def __str__(self):
         return f"{self.assetid}"
     
-class AsserInventory(models.Model):
+class AssetInventory(models.Model):
     assetinventoryid=models.AutoField(primary_key=True)
     assetid=models.ForeignKey(AssetMaster,on_delete=models.CASCADE,related_name='assetmaster')
     junctionid=models.ForeignKey(junctionboxmaster,on_delete=models.CASCADE,related_name='junctionboxmaster')

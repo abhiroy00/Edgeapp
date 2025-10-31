@@ -11,10 +11,11 @@ export const rackApi = createApi({
   }),
   tagTypes: ["JunctionBox"],
   endpoints: (builder) => ({
-    
+
     // ✅ Get all Junction Boxes (pagination + search)
     getJunctionBoxes: builder.query({
-      query: ({ page = 1, search = "" }) =>
+      // Provide default empty object to avoid destructuring errors
+      query: ({ page = 1, search = "" } = {}) =>
         `junctionboxes/?page=${page}&search=${search}`,
       providesTags: ["JunctionBox"],
     }),

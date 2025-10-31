@@ -1,0 +1,46 @@
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+export const assetInventoryApi = createApi({
+  reducerPath: "assetInventoryApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://127.0.0.1:8000/api/", // 🔹 Change this to your backend URL
+  }),
+  tagTypes: ["AssetInventory"],
+  endpoints: (builder) => ({
+    getInventories: builder.query({
+      query: ({ search = "", page = 1 }) =>
+        `assetinventory/?search=${search}&page=${page}`,
+      providesTags: ["AssetInventory"],
+    }),
+    createInventory: builder.mutation({
+      query: (body) => ({
+        url: "assetinventory/",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["AssetInventory"],
+    }),
+    updateInventory: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `assetinventory/${id}/`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["AssetInventory"],
+    }),
+    deleteInventory: builder.mutation({
+      query: (id) => ({
+        url: `assetinventory/${id}/`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["AssetInventory"],
+    }),
+  }),
+});
+
+export const {
+  useGetInventoriesQuery,
+  useCreateInventoryMutation,
+  useUpdateInventoryMutation,
+  useDeleteInventoryMutation,
+} = assetInventoryApi;

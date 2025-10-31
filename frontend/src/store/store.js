@@ -11,6 +11,7 @@ import { rackApi } from "../features/location/rack/rackApi";
 import { unitOfMeasurementApi } from "../features/unit_of_measurement/unitofmesurementApi";
 import {severityApi } from '../features/severity_master/SeveritymasterApi'
 import { assetMasterApi } from "../features/asset/asset_master/assetmasterApi";
+import { assetInventoryApi } from "../features/asset/asset_invetory/assetinventryApi";
 
 
 const store = configureStore({
@@ -26,7 +27,8 @@ const store = configureStore({
     [rackApi.reducerPath]: rackApi.reducer,
     [unitOfMeasurementApi.reducerPath]:unitOfMeasurementApi.reducer,
     [severityApi.reducerPath]:severityApi.reducer,
-    [assetMasterApi.reducerPath]:assetMasterApi.reducer
+    [assetMasterApi.reducerPath]:assetMasterApi.reducer,
+    [assetInventoryApi.reducerPath]:assetInventoryApi.reducer
    
 
   },
@@ -44,6 +46,7 @@ const store = configureStore({
       .concat(unitOfMeasurementApi.middleware)
       .concat(severityApi .middleware)
       .concat(assetMasterApi.middleware)
+      .concat(assetInventoryApi.middleware)
       ,
 
 
