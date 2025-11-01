@@ -12,6 +12,7 @@ import { unitOfMeasurementApi } from "../features/unit_of_measurement/unitofmesu
 import {severityApi } from '../features/severity_master/SeveritymasterApi'
 import { assetMasterApi } from "../features/asset/asset_master/assetmasterApi";
 import { assetInventoryApi } from "../features/asset/asset_invetory/assetinventryApi";
+import { assetAttributeApi } from "../features/asset/asset_attributes/assetattributeApi";
 
 
 const store = configureStore({
@@ -28,7 +29,9 @@ const store = configureStore({
     [unitOfMeasurementApi.reducerPath]:unitOfMeasurementApi.reducer,
     [severityApi.reducerPath]:severityApi.reducer,
     [assetMasterApi.reducerPath]:assetMasterApi.reducer,
-    [assetInventoryApi.reducerPath]:assetInventoryApi.reducer
+    [assetInventoryApi.reducerPath]:assetInventoryApi.reducer,
+    [assetAttributeApi.reducerPath]:assetAttributeApi.reducer
+
    
 
   },
@@ -47,6 +50,7 @@ const store = configureStore({
       .concat(severityApi .middleware)
       .concat(assetMasterApi.middleware)
       .concat(assetInventoryApi.middleware)
+      .concat(assetAttributeApi.middleware)
       ,
 
 

@@ -1,7 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
 import { Plus } from "lucide-react";
 
+import {
+  useFetchAssetAttributesQuery,
+  useAddAssetAttributeMutation,
+  useDeleteAssetAttributeMutation,
+} from "./assetattributeApi";
+
+import { useGetUnitsQuery } from "../../unit_of_measurement/unitofmesurementApi";
+import { useGetAssetsQuery } from "../../asset/asset_master/assetmasterApi";
+
 export default function AssetAttributes() {
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+
+  const { data, isLoading } = useFetchAssetAttributesQuery({ page, search });
+  const { data: assets } = useGetAssetsQuery({ page: 1, pageSize: 100 });
+  const { data: units } = useGetUnitsQuery({ page: 1, page_size: 100 });
+
+  const [addAttribute] = useAddAssetAttributeMutation();
+  const [deleteAttribute] = useDeleteAssetAttributeMutation();
+
+  const [asset, setAsset] = useState("");
+  const [name, setName] = useState("");
+  const [unit, setUnit] = useState("");
+
+  const handleSubmit = async () => {
+    if (!asset || !name || !unit) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    await addAttribute({
+      asset,
+      name,
+      unitofmeasurementmaster: unit,
+    });
+
+    setAsset("");
+    setName("");
+    setUnit("");
+  };
+
+  if (isLoading) return <h2 className="text-center">Loading...</h2>;
+
   return (
     <div className="min-h-screen bg-gradient-to-br mt-32 from-purple-50 to-pink-50 p-6">
       <div className="w-full bg-white shadow-2xl rounded-2xl p-8 space-y-6">
@@ -12,31 +54,57 @@ export default function AssetAttributes() {
         {/* Choose Asset */}
         <div className="flex items-center gap-3">
           <label className="w-40 text-gray-700 font-medium">Choose Asset</label>
-          <select className="flex-1 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
-            <option>Point Machine</option>
+          <select
+            className="flex-1 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            value={asset}
+            onChange={(e) => setAsset(e.target.value)}
+          >
+            <option value="">Select Asset</option>
+            {assets?.results?.map((item) => (
+              <option key={item.assetid} value={item.assetid}>
+                {item.assetname}
+              </option>
+            ))}
           </select>
+
           <button className="p-2 rounded-full bg-green-600 hover:bg-green-700 text-white transition">
             <Plus size={18} />
           </button>
         </div>
 
-        {/* Asset Name */}
+        {/* Attribute Name */}
         <div className="flex items-center gap-3">
-          <label className="w-40 text-gray-700 font-medium">Asset Name</label>
+          <label className="w-40 text-gray-700 font-medium">
+            Attribute Name
+          </label>
           <input
             type="text"
-            placeholder="Enter asset name"
+            placeholder="Enter attribute name"
             className="flex-1 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
         </div>
 
         {/* UOM */}
         <div className="flex items-center gap-3">
           <label className="w-40 text-gray-700 font-medium">UOM</label>
-          <select className="flex-1 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-400">
-            <option>Voltage</option>
-            <option>Current</option>
+          <select
+            className="flex-1 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+          >
+            <option value="">Select UOM</option>
+            {units?.results?.map((item) => (
+              <option
+                key={item.unitofmeasurementmasterid}
+                value={item.unitofmeasurementmasterid}
+              >
+                {item.unitmeasurename}
+              </option>
+            ))}
           </select>
+
           <button className="p-2 rounded-full bg-green-600 hover:bg-green-700 text-white transition">
             <Plus size={18} />
           </button>
@@ -44,92 +112,99 @@ export default function AssetAttributes() {
 
         {/* Submit Button */}
         <div className="text-center">
-          <button className=" py-3 px-6 bg-fuchsia-700 hover:bg-fuchsia-800 text-white font-semibold rounded-lg shadow-md transition">
+          <button
+            className=" py-3 px-6 bg-fuchsia-700 hover:bg-fuchsia-800 text-white font-semibold rounded-lg shadow-md transition"
+            onClick={handleSubmit}
+          >
             Add Attribute
           </button>
         </div>
       </div>
 
-  <div className="w-full mt-5 bg-white shadow-2xl rounded-2xl p-8 space-y-6">
+      {/* Table Section */}
+      <div className="w-full mt-5 bg-white shadow-2xl rounded-2xl p-8 space-y-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <label className="text-gray-700 font-medium">Search:</label>
+            <input
+              type="text"
+              className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+              placeholder="Type to search..."
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+        </div>
 
-  <div className="flex justify-between items-center mb-4">
+        <div className="overflow-x-auto flex-1">
+          <table className="min-w-full border border-gray-200 rounded-lg text-sm">
+            <thead className="bg-fuchsia-100">
+              <tr>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700">
+                  Asset
+                </th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700">
+                  Attribute Name
+                </th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700">
+                  UOM
+                </th>
+                <th className="px-4 py-2 text-left font-semibold text-gray-700">
+                  Delete
+                </th>
+              </tr>
+            </thead>
 
-    <div className="flex items-center gap-2">
-      <span className="text-gray-700">Show</span>
-      <input
-        type="number"
-        className="w-20 border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-      />
-      <span className="text-gray-700">entries</span>
-    </div>
+           <tbody className="divide-y divide-gray-200">
+  {data?.results?.map((item) => {
+    const assetName =
+      assets?.results?.find((a) => a.assetid === item.asset)?.assetname ||
+      "N/A";
 
-    <div className="flex items-center gap-2">
-      <label className="text-gray-700 font-medium">Search:</label>
-      <input
-        type="text"
-        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-        placeholder="Type to search..."
-      />
-    </div>
+    const uomName =
+      units?.results?.find((u) => u.unitofmeasurementmasterid === item.unitofmeasurementmaster)
+        ?.unitmeasurename || "N/A";
 
+    return (
+      <tr className="hover:bg-fuchsia-50" key={item.assetattributemasterid}>
+        <td className="px-4 py-2">{assetName}</td>
+        <td className="px-4 py-2">{item.name}</td>
+        <td className="px-4 py-2">{uomName}</td>
+        <td
+          className="px-4 py-2 text-red-600 cursor-pointer"
+          onClick={() => deleteAttribute(item.assetattributemasterid)}
+        >
+          🗑️
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
 
-  
-  </div>
+          </table>
+        </div>
 
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <button
+            className="px-3 py-1 border rounded-md hover:bg-gray-100"
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+          >
+            Prev
+          </button>
 
-
-  <div className="overflow-x-auto flex-1">
-    <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-      <thead className="bg-fuchsia-100">
-        <tr>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Asset</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Attribute Name</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">UOM</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Edit</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Delete</th>
-         
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-200">
-        <tr className="hover:bg-fuchsia-50">
-          <td className="px-4 py-2">Point Machine</td>
-          <td className="px-4 py-2">Moter voltages</td>
-          <td className="px-4 py-2">Votage</td>
-
-          
-          <td className="px-4 py-2 text-fuchsia-700 cursor-pointer">✏️</td>
-          <td className="px-4 py-2 text-red-600 cursor-pointer">🗑️</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
-    <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-    <p>Showing 1 to 10 of 50 entries</p>
-    <div className="flex items-center gap-2">
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">Prev</button>
-      <button className="px-3 py-1 border rounded-md bg-fuchsia-600 text-white">1</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">2</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">3</button>
-      <span className="px-2">...</span>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">5</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">Next</button>
-    </div>
-  </div>
-
-
-
-
-
-
-
-  </div>
-  
-  
-
-
-
+          <button
+            className="px-3 py-1 border rounded-md hover:bg-gray-100"
+            disabled={data?.results?.length < 10}
+            onClick={() => setPage(page + 1)}
+          >
+            Next
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

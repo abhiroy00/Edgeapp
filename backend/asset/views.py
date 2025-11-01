@@ -7,8 +7,8 @@ from rest_framework import status
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-from .models import AssetMaster, AssetInventory
-from asset.serializer import AssetMasterSerializer, AssetInventorySerializer
+from .models import AssetMaster, AssetInventory,AssetAttributeMaster
+from asset.serializer import AssetMasterSerializer, AssetInventorySerializer,AssetAttributeMasterSerializer
 
 
 class AssetMasterView(APIView):
@@ -195,3 +195,64 @@ class AssetInventoryAPIView(APIView):
 
         asset.delete()
         return Response({"message": "AssetInventory deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class AssetAttributeMasterAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        search = request.GET.get("search", "")
+        page = int(request.GET.get("page", 1))
+        page_size = int(request.GET.get("pageSize", 10))
+
+        queryset = AssetAttributeMaster.objects.filter(
+            Q(name__icontains=search)
+        ).order_by("-assetattributemasterid")
+
+        paginator = Paginator(queryset, page_size)
+        paginated_data = paginator.get_page(page)
+
+        serializer = AssetAttributeMasterSerializer(paginated_data, many=True)
+
+        return Response({
+            "count": paginator.count,
+            "total_pages": paginator.num_pages,
+            "next": paginated_data.next_page_number() if paginated_data.has_next() else None,
+            "previous": paginated_data.previous_page_number() if paginated_data.has_previous() else None,
+            "results": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        serializer = AssetAttributeMasterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Created Successfully", "data": serializer.data}, status=201)
+        return Response(serializer.errors, status=400)
+
+    def put(self, request, *args, **kwargs):
+        asset_attribute_id = request.data.get("assetattributemasterid")
+        if not asset_attribute_id:
+            return Response({"error": "assetattributemasterid is required"}, status=400)
+
+        try:
+            instance = AssetAttributeMaster.objects.get(assetattributemasterid=asset_attribute_id)
+        except AssetAttributeMaster.DoesNotExist:
+            return Response({"error": "Record not found"}, status=404)
+
+        serializer = AssetAttributeMasterSerializer(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Updated successfully", "data": serializer.data})
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request, *args, **kwargs):
+        asset_attribute_id = request.GET.get("assetattributemasterid")
+        if not asset_attribute_id:
+            return Response({"error": "assetattributemasterid is required"}, status=400)
+
+        try:
+            instance = AssetAttributeMaster.objects.get(assetattributemasterid=asset_attribute_id)
+        except AssetAttributeMaster.DoesNotExist:
+            return Response({"error": "Record not found"}, status=404)
+
+        instance.delete()
+        return Response({"message": "Deleted successfully"}, status=200)

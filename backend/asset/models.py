@@ -1,7 +1,7 @@
 from django.db import models
 from junction.models import junctionboxmaster
-from Location.models import StationEntitiesMaster,Unitofmeasurementmaster
-
+from Location.models import StationEntitiesMaster
+from junction.models import Unitofmeasurementmaster
 # Create your models here.
 
 class AssetMaster(models.Model):
@@ -32,14 +32,14 @@ class AssetInventory(models.Model):
     
 class AssetAttributeMaster(models.Model):
     assetattributemasterid=models.AutoField(primary_key=True)
-    assetid=models.ForeignKey(AssetMaster,on_delete=models.CASCADE,related_name='assetattributemaster')
+    asset=models.ForeignKey(AssetMaster,on_delete=models.CASCADE,related_name='assetattributemaster')
     name=models.CharField(max_length=200)
-    unitofmeasurementmasterid=models.ForeignKey(Unitofmeasurementmaster,on_delete=models.CASCADE,related_name='unitofmeasurementmaster')
+    unitofmeasurementmaster=models.ForeignKey(Unitofmeasurementmaster,on_delete=models.CASCADE,related_name='unitofmeasurementmaster')
     
 class AssestAttributelink(models.Model):
-   assetattributelinkid=models.AutoField(primary_key=True)
-   assetinventoryid=models.ForeignKey(AssetInventory,on_delete=models.CASCADE,related_name='assetinventory')
-   assetattributemasterid=models.ForeignKey(AssetAttributeMaster,on_delete=models.CASCADE,related_name='assetattributemaster')
+   assetattributelink=models.AutoField(primary_key=True)
+   assetinventory=models.ForeignKey(AssetInventory,on_delete=models.CASCADE,related_name='assetinventory')
+   assetattributemaster=models.ForeignKey(AssetAttributeMaster,on_delete=models.CASCADE,related_name='assetattributemaster')
    sensorserial=models.TextField()
    sensorvalue=models.IntegerField()
    conversion=models.FloatField()

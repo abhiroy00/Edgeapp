@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from asset.models import AssetMaster,AssetInventory
+from asset.models import AssetMaster,AssetInventory,AssetAttributeMaster
 from junction.models import junctionboxmaster
-from Location.models import unitofmeasurementmaster
+from junction.models import Unitofmeasurementmaster
 
 class AssetMasterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,8 +16,10 @@ class AssetInventorySerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 
-class AssetInventoryDetailSerializer(serializers.ModelSerializer):
-    unitofmeasurementmasterid = serializers.PrimaryKeyRelatedField(queryset=unitofmeasurementmaster.objects.all())
+class AssetAttributeMasterSerializer(serializers.ModelSerializer):
+    asset = serializers.PrimaryKeyRelatedField(queryset=AssetMaster.objects.all())
+    unitofmeasurementmaster = serializers.PrimaryKeyRelatedField(queryset=Unitofmeasurementmaster.objects.all())
+
     class Meta:
-        model = AssetInventory
+        model = AssetAttributeMaster
         fields = '__all__'
