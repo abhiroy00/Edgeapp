@@ -64,7 +64,7 @@ class OperatorMaster(models.Model):
 
 class AlarmCreation(models.Model):
     alarmsetup=models.AutoField(primary_key=True)
-    assetattributelink=models.ForeignKey(AssestAttributelink,on_delete=models.CASCADE,related_name='assetattributelink')
+    assetattributelink=models.ForeignKey(AssestAttributelink,on_delete=models.CASCADE,related_name='alarm_links')
     mathoperator=models.ForeignKey(OperatorMaster,on_delete=models.CASCADE,related_name='operatormaster')
     thresholdvalue=models.FloatField()
     message=models.TextField()
