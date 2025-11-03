@@ -7,8 +7,8 @@ from rest_framework import status
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-from .models import AssetMaster, AssetInventory,AssetAttributeMaster
-from asset.serializer import AssetMasterSerializer, AssetInventorySerializer,AssetAttributeMasterSerializer
+from .models import AssetMaster, AssetInventory,AssetAttributeMaster,OperatorMaster,AlarmCreation
+from asset.serializer import AssetMasterSerializer, AssetInventorySerializer,AssetAttributeMasterSerializer,OperatorMasterSerializer,AlarmCreationSerializer
 
 
 class AssetMasterView(APIView):
@@ -256,3 +256,155 @@ class AssetAttributeMasterAPIView(APIView):
 
         instance.delete()
         return Response({"message": "Deleted successfully"}, status=200)
+    
+class OperatorMasterAPIView(APIView):
+    def get(self, request):
+        operators = OperatorMaster.objects.all()
+        serializer = OperatorMasterSerializer(operators, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def post(self, request):
+        serializer = OperatorMasterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk=None):
+        if not pk:
+            return Response({"error": "ID (pk) required for update"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            operator = OperatorMaster.objects.get(pk=pk)
+        except OperatorMaster.DoesNotExist:
+            return Response({"error": "OperatorMaster not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = OperatorMasterSerializer(operator, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+    def delete(self, request, pk=None):
+        if not pk:
+            return Response({"error": "ID (pk) required for delete"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            operator = OperatorMaster.objects.get(pk=pk)
+        except OperatorMaster.DoesNotExist:
+            return Response({"error": "OperatorMaster not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        operator.delete()
+        return Response({"message": "OperatorMaster deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+    
+class AlarmCreationAPIView(APIView):
+    """
+    API View for AlarmCreation CRUD + Search + Pagination
+    """
+
+    def get(self, request, pk=None):
+        """
+        GET:
+        - If pk provided → return single record
+        - Else → return paginated + searchable list
+        """
+        if pk:
+            try:
+                alarm = AlarmCreation.objects.get(pk=pk)
+                serializer = AlarmCreationSerializer(alarm)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except AlarmCreation.DoesNotExist:
+                return Response({"error": "AlarmCreation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # --- List with Search + Pagination ---
+        search_query = request.GET.get("search", "")
+        page_number = int(request.GET.get("page", 1))
+        page_size = int(request.GET.get("page_size", 10))
+
+        queryset = AlarmCreation.objects.all().order_by("-alarmsetup")
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(message__icontains=search_query)
+                | Q(actiontext__icontains=search_query)
+                | Q(thresholdvalue__icontains=search_query)
+                | Q(alerttolevel__icontains=search_query)
+            )
+
+        paginator = Paginator(queryset, page_size)
+        page_obj = paginator.get_page(page_number)
+        serializer = AlarmCreationSerializer(page_obj, many=True)
+
+        return Response({
+            "count": paginator.count,
+            "total_pages": paginator.num_pages,
+            "current_page": page_obj.number,
+            "results": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        POST: Create new AlarmCreation record
+        """
+        serializer = AlarmCreationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Alarm created successfully", "data": serializer.data},
+                            status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None):
+        """
+        PUT: Full update of an AlarmCreation record
+        """
+        if not pk:
+            return Response({"error": "ID (pk) required for update"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            alarm = AlarmCreation.objects.get(pk=pk)
+        except AlarmCreation.DoesNotExist:
+            return Response({"error": "AlarmCreation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AlarmCreationSerializer(alarm, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Updated successfully", "data": serializer.data},
+                            status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk=None):
+        """
+        PATCH: Partial update of an AlarmCreation record
+        """
+        if not pk:
+            return Response({"error": "ID (pk) required for partial update"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            alarm = AlarmCreation.objects.get(pk=pk)
+        except AlarmCreation.DoesNotExist:
+            return Response({"error": "AlarmCreation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AlarmCreationSerializer(alarm, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Partially updated", "data": serializer.data},
+                            status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None):
+        """
+        DELETE: Delete AlarmCreation record by ID
+        """
+        if not pk:
+            return Response({"error": "ID (pk) required for delete"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            alarm = AlarmCreation.objects.get(pk=pk)
+        except AlarmCreation.DoesNotExist:
+            return Response({"error": "AlarmCreation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        alarm.delete()
+        return Response({"message": "AlarmCreation deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

@@ -55,3 +55,24 @@ class AssestAttributelink(models.Model):
    activewindowhours=models.CharField(max_length=200)
    isdashboardattribute=models.IntegerField()
    colorcondition=models.CharField(max_length=200)
+
+class OperatorMaster(models.Model):
+    mathoperator=models.AutoField(primary_key=True)
+    operator=models.TextField()
+    mathexpression=models.TextField()
+
+
+class AlarmCreation(models.Model):
+    alarmsetup=models.AutoField(primary_key=True)
+    assetattributelink=models.ForeignKey(AssestAttributelink,on_delete=models.CASCADE,related_name='assetattributelink')
+    mathoperator=models.ForeignKey(OperatorMaster,on_delete=models.CASCADE,related_name='operatormaster')
+    thresholdvalue=models.FloatField()
+    message=models.TextField()
+    actiontext=models.TextField()
+    alerttolevel=models.IntegerField()
+    repeat=models.IntegerField()
+    duration_seconds=models.IntegerField()
+    is_active=models.BooleanField(default=True)
+
+
+    

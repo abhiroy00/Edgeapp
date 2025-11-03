@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from asset.models import AssetMaster,AssetInventory,AssetAttributeMaster
+from asset.models import AssetMaster,AssetInventory,AssetAttributeMaster,OperatorMaster,AlarmCreation,AssestAttributelink
 from junction.models import junctionboxmaster
 from junction.models import Unitofmeasurementmaster
 
@@ -22,4 +22,16 @@ class AssetAttributeMasterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AssetAttributeMaster
+        fields = '__all__'
+
+class OperatorMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperatorMaster
+        fields = '__all__'
+
+class AlarmCreationSerializer(serializers.ModelSerializer):
+    assetattributelink=serializers.PrimaryKeyRelatedField(queryset=AssestAttributelink.objects.all())
+    mathoperator = serializers.PrimaryKeyRelatedField(queryset=OperatorMaster.objects.all())
+    class Meta:
+        model = AlarmCreation
         fields = '__all__'
