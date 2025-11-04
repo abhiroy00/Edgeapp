@@ -1,78 +1,212 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import {
+  useGetAlarmsQuery,
+  useCreateAlarmMutation,
+  useDeleteAlarmMutation,
+  useUpdateAlarmMutation,
+  useGetOperatorsQuery,
+  useGetAssetAttributesQuery,
+} from "./alarmcreationApi";
 
 export default function AlramCreation() {
+  const { data: operatorData } = useGetOperatorsQuery();
+  const { data: attributeData } = useGetAssetAttributesQuery();
+  const { data: alarmData } = useGetAlarmsQuery();
+
+  const [createAlarm] = useCreateAlarmMutation();
+  const [updateAlarm] = useUpdateAlarmMutation();
+  const [deleteAlarm] = useDeleteAlarmMutation();
+
+  const [editingAlarm, setEditingAlarm] = useState(null);
+
+  const [formData, setFormData] = useState({
+    assetattributelink: "",
+    mathoperator: "",
+    thresholdvalue: "",
+    message: "",
+    actiontext: "",
+    alerttolevel: "",
+    repeat: "",
+    duration_seconds: "",
+    is_active: true,
+  });
+
+  // ✅ When clicking Edit - prefill
+  const handleEdit = (alarm) => {
+    setEditingAlarm(alarm.alarmsetup);
+    setFormData({
+      assetattributelink: alarm.assetattributelink,
+      mathoperator: alarm.mathoperator,
+      thresholdvalue: alarm.thresholdvalue,
+      message: alarm.message,
+      actiontext: alarm.actiontext,
+      alerttolevel: alarm.alerttolevel,
+      repeat: alarm.repeat,
+      duration_seconds: alarm.duration_seconds,
+      is_active: alarm.is_active,
+    });
+  };
+
+  // ✅ Handle Submit (Create or Update)
+  const handleSubmit = async () => {
+    const payload = {
+      assetattributelink: Number(formData.assetattributelink),
+      mathoperator: Number(formData.mathoperator),
+      thresholdvalue: Number(formData.thresholdvalue),
+      message: formData.message,
+      actiontext: formData.actiontext,
+      alerttolevel: Number(formData.alerttolevel),
+      repeat: Number(formData.repeat),
+      duration_seconds: Number(formData.duration_seconds),
+      is_active: true,
+    };
+
+    try {
+      if (editingAlarm) {
+        await updateAlarm({ alarmsetup: editingAlarm, ...payload }).unwrap();
+        alert("✅ Alarm Updated Successfully");
+        setEditingAlarm(null);
+      } else {
+        await createAlarm(payload).unwrap();
+        alert("✅ Alarm Created Successfully");
+      }
+
+      setFormData({
+        assetattributelink: "",
+        mathoperator: "",
+        thresholdvalue: "",
+        message: "",
+        actiontext: "",
+        alerttolevel: "",
+        repeat: "",
+        duration_seconds: "",
+        is_active: true,
+      });
+    } catch (error) {
+      console.log("Error:", error);
+      alert("❌ Failed! Check console");
+    }
+  };
+
+  // ✅ Delete Alarm
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure to delete?")) {
+      try {
+        await deleteAlarm(id).unwrap();
+        alert("🗑️ Deleted Successfully");
+      } catch (err) {
+        alert("❌ Failed to delete");
+      }
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-br mt-30 from-purple-50 to-pink-50  justify-center  p-6">
-      <div className="h-[500px]  w-full bg-white shadow-2xl rounded-2xl p-6 flex flex-col">
+    <div className="bg-gradient-to-br mt-30 from-purple-50 to-pink-50 justify-center p-6">
+      <div className="h-[500px] w-full bg-white shadow-2xl rounded-2xl p-6 flex flex-col">
         <h1 className="text-2xl font-bold text-fuchsia-900 mb-4 text-center">
-          ADD ALARM
+          {editingAlarm ? "UPDATE ALARM" : "ADD ALARM"}
         </h1>
 
         <div className="flex flex-1 gap-10">
-          {/* Left Side */}
+
           <div className="flex-1 space-y-4">
+
             <div>
               <label className="block text-gray-700 font-medium mb-1">
-                Asset Attribute
+                Asset Attribute Link
               </label>
-              <select className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500">
-                <option>Point Machine</option>
-                <option>Motor Voltage</option>
+              <select
+                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={formData.assetattributelink}
+                onChange={(e) =>
+                  setFormData({ ...formData, assetattributelink: e.target.value })
+                }
+              >
+                <option value="">-- Select Attribute --</option>
+                {(attributeData?.results || attributeData)?.map((at) => (
+                  <option key={at.assetattributelink} value={at.assetattributelink}>
+                    {at.assetattributelink}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
               <label className="block text-gray-700 font-medium mb-1">
-                Threshold
+                Operator
               </label>
-              <input
-                type="text"
+              <select
                 className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={formData.mathoperator}
+                onChange={(e) =>
+                  setFormData({ ...formData, mathoperator: e.target.value })
+                }
+              >
+                <option value="">-- Select Operator --</option>
+                {(operatorData?.results || operatorData)?.map((op) => (
+                  <option key={op.mathoperator} value={op.mathoperator}>
+                    {op.operator} ({op.mathexpression})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">Threshold</label>
+              <input
+                type="number"
+                step="0.01"
+                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={formData.thresholdvalue}
+                onChange={(e) =>
+                  setFormData({ ...formData, thresholdvalue: e.target.value })
+                }
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Repeat
-              </label>
-              <select className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500">
-                <option>Yes</option>
-                <option>No</option>
+              <label className="block text-gray-700 font-medium mb-1">Repeat</label>
+              <select
+                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={formData.repeat}
+                onChange={(e) =>
+                  setFormData({ ...formData, repeat: e.target.value })
+                }
+              >
+                <option value="">Select</option>
+                <option value={1}>Yes</option>
+                <option value={0}>No</option>
               </select>
             </div>
           </div>
 
-          {/* Right Side */}
           <div className="flex-1 space-y-4">
             <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Condition
-              </label>
+              <label className="block text-gray-700 font-medium mb-1">Message</label>
               <input
                 type="text"
                 className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={formData.message}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Message
-              </label>
-              <input
-                type="text"
+              <label className="block text-gray-700 font-medium mb-1">User Level</label>
+              <select
                 className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                User Level
-              </label>
-              <select className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500">
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
+                value={formData.alerttolevel}
+                onChange={(e) =>
+                  setFormData({ ...formData, alerttolevel: e.target.value })
+                }
+              >
+                <option value="">Select</option>
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+                <option value={4}>4</option>
               </select>
             </div>
 
@@ -81,95 +215,103 @@ export default function AlramCreation() {
                 Duration (sec)
               </label>
               <input
+                type="number"
+                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={formData.duration_seconds}
+                onChange={(e) =>
+                  setFormData({ ...formData, duration_seconds: e.target.value })
+                }
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-medium mb-1">
+                Action Text
+              </label>
+              <input
                 type="text"
                 className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                value={formData.actiontext}
+                onChange={(e) =>
+                  setFormData({ ...formData, actiontext: e.target.value })
+                }
               />
             </div>
           </div>
         </div>
 
-        {/* Button */}
         <div className="flex justify-center mt-6">
-          <button className="bg-fuchsia-900 text-white font-semibold px-8 py-3 rounded-xl shadow-md hover:bg-fuchsia-800 transition-all">
-            Add
+          <button
+            className="bg-fuchsia-900 text-white font-semibold px-8 py-3 rounded-xl shadow-md hover:bg-fuchsia-800 transition-all"
+            onClick={handleSubmit}
+          >
+            {editingAlarm ? "Update" : "Add"}
           </button>
         </div>
       </div>
 
-    <div className="h-[500px] w-full bg-white shadow-2xl rounded-2xl mt-5 p-6 flex flex-col">
-  {/* Header controls */}
-  <div className="flex justify-between items-center mb-4">
-    <div className="flex items-center gap-2">
-      <span className="text-gray-700">Show</span>
-      <input
-        type="number"
-        className="w-20 border border-gray-300 rounded-lg p-1 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-      />
-      <span className="text-gray-700">entries</span>
+      {/* ✅ TABLE */}
+      <div className="h-[500px] w-full bg-white shadow-2xl rounded-2xl mt-5 p-6 flex flex-col">
+        <div className="overflow-x-auto flex-1">
+          <table className="min-w-full border border-gray-200 rounded-lg text-sm">
+            <thead className="bg-fuchsia-100">
+              <tr>
+                <th className="px-4 py-2 text-left">Operator</th>
+                <th className="px-4 py-2 text-left">Threshold</th>
+                <th className="px-4 py-2 text-left">Message</th>
+                <th className="px-4 py-2 text-left">User Level</th>
+                <th className="px-4 py-2 text-left">Repeat</th>
+                <th className="px-4 py-2 text-left">Duration</th>
+                <th className="px-4 py-2 text-left">Action Text</th>
+
+                <th className="px-4 py-2 text-left">Delete</th>
+                <th className="px-4 py-2 text-left">Edit</th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-gray-200">
+              {alarmData?.results?.length > 0 ? (
+                alarmData.results.map((alarm) => (
+                  <tr key={alarm.alarmsetup} className="hover:bg-fuchsia-50">
+                    <td className="px-4 py-2">{alarm.mathoperator}</td>
+                    <td className="px-4 py-2">{alarm.thresholdvalue}</td>
+                    <td className="px-4 py-2">{alarm.message}</td>
+                    <td className="px-4 py-2">{alarm.alerttolevel}</td>
+                    <td className="px-4 py-2">{alarm.repeat === 1 ? "Yes" : "No"}</td>
+                    <td className="px-4 py-2">{alarm.duration_seconds}</td>
+                     <td className="px-4 py-2">{alarm.actiontext}</td>
+
+
+                    <td className="px-4 py-2">
+                      <button
+                        className="text-red-600 font-bold"
+                        onClick={() => handleDelete(alarm.alarmsetup)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+
+                    <td className="px-4 py-2">
+                      <button
+                        className="text-blue-600 font-bold"
+                        onClick={() => handleEdit(alarm)}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center py-4 text-gray-500">
+                    No records found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-
-    <div className="flex items-center gap-2">
-      <label className="text-gray-700 font-medium">Search:</label>
-      <input
-        type="text"
-        className="border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-        placeholder="Type to search..."
-      />
-    </div>
-  </div>
-
-  {/* Table */}
-  <div className="overflow-x-auto flex-1">
-    <table className="min-w-full border border-gray-200 rounded-lg text-sm">
-      <thead className="bg-fuchsia-100">
-        <tr>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Asset Attribute</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Condition</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Threshold</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Message</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Action</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">User Level</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Repeat</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Duration</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Edit</th>
-          <th className="px-4 py-2 text-left font-semibold text-gray-700">Delete</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-200">
-        <tr className="hover:bg-fuchsia-50">
-          <td className="px-4 py-2">The point machine</td>
-          <td className="px-4 py-2">If greater than</td>
-          <td className="px-4 py-2">110</td>
-          <td className="px-4 py-2">text message</td>
-          <td className="px-4 py-2">action text</td>
-          <td className="px-4 py-2">2</td>
-          <td className="px-4 py-2">yes</td>
-          <td className="px-4 py-2">300</td>
-          <td className="px-4 py-2 text-fuchsia-700 cursor-pointer">✏️</td>
-          <td className="px-4 py-2 text-red-600 cursor-pointer">🗑️</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  {/* Pagination */}
-  <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-    <p>Showing 1 to 10 of 50 entries</p>
-    <div className="flex items-center gap-2">
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">Prev</button>
-      <button className="px-3 py-1 border rounded-md bg-fuchsia-600 text-white">1</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">2</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">3</button>
-      <span className="px-2">...</span>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">5</button>
-      <button className="px-3 py-1 border rounded-md hover:bg-gray-100">Next</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-    </div>
-  )
+  );
 }
