@@ -13,6 +13,7 @@ import {severityApi } from '../features/severity_master/SeveritymasterApi'
 import { assetMasterApi } from "../features/asset/asset_master/assetmasterApi";
 import { assetInventoryApi } from "../features/asset/asset_invetory/assetinventryApi";
 import { assetAttributeApi } from "../features/asset/asset_attributes/assetattributeApi";
+import { alarmSetupApi } from "../features/asset/alarm_setup/alarmsetupApi";
 
 
 const store = configureStore({
@@ -30,7 +31,8 @@ const store = configureStore({
     [severityApi.reducerPath]:severityApi.reducer,
     [assetMasterApi.reducerPath]:assetMasterApi.reducer,
     [assetInventoryApi.reducerPath]:assetInventoryApi.reducer,
-    [assetAttributeApi.reducerPath]:assetAttributeApi.reducer
+    [assetAttributeApi.reducerPath]:assetAttributeApi.reducer,
+    [alarmSetupApi.reducerPath]:alarmSetupApi.reducer
 
    
 
@@ -51,6 +53,7 @@ const store = configureStore({
       .concat(assetMasterApi.middleware)
       .concat(assetInventoryApi.middleware)
       .concat(assetAttributeApi.middleware)
+      .concat(alarmSetupApi.middleware)
       ,
 
 
