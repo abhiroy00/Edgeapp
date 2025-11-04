@@ -147,7 +147,7 @@ export default function AlarmSetup() {
             </select>
           </div>
 
-          {/* ✅ DYNAMIC INPUT FIELDS */}
+          {/* ✅ INPUT FIELDS (auto rendered) */}
           {Object.keys(formData)
             .filter((k) => k !== "assetinventory" && k !== "assetattributemaster")
             .map((key) => (
@@ -169,7 +169,7 @@ export default function AlarmSetup() {
           </div>
         </form>
 
-        {/* ✅ TABLE ✅ */}
+        {/* ✅ TABLE */}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
             <thead className="bg-blue-100">
@@ -180,14 +180,20 @@ export default function AlarmSetup() {
                 <th className="px-4 py-2">sensorvalue</th>
                 <th className="px-4 py-2">conversion</th>
                 <th className="px-4 py-2">portnumber</th>
-                <th className="px-4 py-2">testpoint</th>
+                <th className="px-4 py-2">testpointlocation</th>
                 <th className="px-4 py-2">pulsevalue</th>
                 <th className="px-4 py-2">lolimit</th>
                 <th className="px-4 py-2">hilimit</th>
+
+                {/* ✅ NEW COLUMNS ADDED */}
+                <th className="px-4 py-2">chnagethreshold percentage</th>
+                <th className="px-4 py-2">datacollectionfrequency minutes</th>
+
                 <th className="px-4 py-2">wireferrrules</th>
                 <th className="px-4 py-2">activewindowhours</th>
                 <th className="px-4 py-2">isdashboardattribute</th>
                 <th className="px-4 py-2">colorcondition</th>
+
                 <th className="px-4 py-2">Edit</th>
                 <th className="px-4 py-2">Delete</th>
               </tr>
@@ -216,6 +222,11 @@ export default function AlarmSetup() {
                   <td className="px-4 py-2">{item.pulsevalue}</td>
                   <td className="px-4 py-2">{item.lolimit}</td>
                   <td className="px-4 py-2">{item.hilimit}</td>
+
+                  {/* ✅ SHOW NEW FIELDS */}
+                  <td className="px-4 py-2">{item.chnagethreshold_percentage}</td>
+                  <td className="px-4 py-2">{item.datacollectionfrequency_minutes}</td>
+
                   <td className="px-4 py-2">{item.wireferrrules}</td>
                   <td className="px-4 py-2">{item.activewindowhours}</td>
                   <td className="px-4 py-2">{item.isdashboardattribute}</td>
@@ -238,7 +249,6 @@ export default function AlarmSetup() {
             </tbody>
           </table>
         </div>
-
 
         {/* ✅ Pagination */}
         <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
