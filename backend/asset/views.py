@@ -7,8 +7,20 @@ from rest_framework import status
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-from .models import AssetMaster, AssetInventory,AssetAttributeMaster,OperatorMaster,AlarmCreation
-from asset.serializer import AssetMasterSerializer, AssetInventorySerializer,AssetAttributeMasterSerializer,OperatorMasterSerializer,AlarmCreationSerializer
+from .models import (AssetMaster,
+                      AssetInventory,
+                      AssetAttributeMaster,
+                      OperatorMaster,
+                      AlarmCreation,
+                      AssestAttributelink
+                      )
+from asset.serializer import (AssetMasterSerializer,
+                               AssetInventorySerializer,
+                               AssetAttributeMasterSerializer,
+                               OperatorMasterSerializer,
+                               AlarmCreationSerializer,
+                               AssestAttributelinkSerializer
+                               )
 
 
 class AssetMasterView(APIView):
@@ -408,3 +420,80 @@ class AlarmCreationAPIView(APIView):
 
         alarm.delete()
         return Response({"message": "AlarmCreation deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+class AssestAttributelinkAPIView(APIView):
+
+    # ✅ GET (List + Search + Pagination)
+    def get(self, request):
+        search = request.GET.get("search", "")
+        page = request.GET.get("page", 1)
+        page_size = request.GET.get("page_size", 10)
+
+        queryset = AssestAttributelink.objects.filter(
+            Q(sensorserial__icontains=search) |
+            Q(portnumber__icontains=search) |
+            Q(testpoint__icontains=search)
+        ).order_by('-assetattributelink')
+
+        total = queryset.count()
+        paginator = Paginator(queryset, page_size)
+        paginated_data = paginator.get_page(page)
+
+        serializer = AssestAttributelinkSerializer(paginated_data, many=True)
+
+        return Response({
+            "count": total,
+            "total_pages": paginator.num_pages,
+            "current_page": int(page),
+            "results": serializer.data
+        }, status=status.HTTP_200_OK)
+
+    # ✅ POST (Create)
+    def post(self, request):
+        serializer = AssestAttributelinkSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AssestAttributelinkDetailAPIView(APIView):
+
+    # Helper to fetch record
+    def get_object(self, pk):
+        try:
+            return AssestAttributelink.objects.get(pk=pk)
+        except AssestAttributelink.DoesNotExist:
+            return None
+
+    # ✅ GET Single
+    def get(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AssestAttributelinkSerializer(obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # ✅ PUT (Update)
+    def put(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AssestAttributelinkSerializer(obj, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # ✅ DELETE
+    def delete(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        obj.delete()
+        return Response({"message": "Deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

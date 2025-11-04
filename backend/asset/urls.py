@@ -4,7 +4,9 @@ from .views import (AssetMasterView,
                     AssetInventoryAPIView,
                     AssetAttributeMasterAPIView,
                     OperatorMasterAPIView,
-                    AlarmCreationAPIView
+                    AlarmCreationAPIView,
+                    AssestAttributelinkAPIView,
+                    AssestAttributelinkDetailAPIView
                     )
 
 urlpatterns = [
@@ -17,4 +19,6 @@ urlpatterns = [
     path('operator/<int:pk>/', OperatorMasterAPIView.as_view(), name='operator-detail'),
     path('alarmcreation/', AlarmCreationAPIView.as_view(), name='alarmcreation-list'),
     path('alarmcreation/<int:pk>/', AlarmCreationAPIView.as_view(), name='alarmcreation-detail'),
+    path('asset-attribute-link/', AssestAttributelinkAPIView.as_view()),
+    path('asset-attribute-link/<int:pk>/', AssestAttributelinkDetailAPIView.as_view()),
 ]

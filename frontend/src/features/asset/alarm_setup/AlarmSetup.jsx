@@ -6,7 +6,7 @@ import {
   useDeleteAlarmSetupMutation,
 } from "./alarmsetupApi";
 
-import { useFetchAssetAttributesQuery } from "../../asset/asset_attributes/assetattributeApi";
+import { useGetInventoriesQuery } from "../../asset/asset_invetory/assetinventryApi";
 import { useGetAssetsQuery } from "../../asset/asset_master/assetmasterApi";
 
 export default function AlarmSetup() {
@@ -36,7 +36,7 @@ export default function AlarmSetup() {
 
   const { data } = useGetAlarmSetupsQuery({ page, search });
   const { data: assets } = useGetAssetsQuery({ page: 1, pageSize: 200, search: "" });
-  const { data: attributes } = useFetchAssetAttributesQuery({ page: 1, pageSize: 200, search: "" });
+  const { data: inventories } = useGetInventoriesQuery({ search: "", page: 1 });
 
   const [addAlarmSetup] = useAddAlarmSetupMutation();
   const [updateAlarmSetup] = useUpdateAlarmSetupMutation();
@@ -49,6 +49,7 @@ export default function AlarmSetup() {
     } else {
       await addAlarmSetup(formData);
     }
+
     setEditingId(null);
     setFormData({
       assetinventory: "",
@@ -89,6 +90,7 @@ export default function AlarmSetup() {
           🚨 Asset Attribute Link
         </h1>
 
+        {/* ✅ SEARCH */}
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
@@ -102,24 +104,25 @@ export default function AlarmSetup() {
           />
         </div>
 
+        {/* ✅ FORM */}
         <form
           onSubmit={handleSubmit}
           className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-6 rounded-lg shadow-inner"
         >
-          {/* ✅ FIXED ASSET DROPDOWN */}
+          {/* ✅ ASSET INVENTORY DROPDOWN */}
           <div>
-            <label className="block mb-1 text-sm font-semibold">Asset</label>
+            <label className="block mb-1 text-sm font-semibold">
+              Asset Inventory
+            </label>
             <select
               value={formData.assetinventory}
-              onChange={(e) =>
-                setFormData({ ...formData, assetinventory: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, assetinventory: e.target.value })}
               className="border p-2 w-full rounded focus:ring focus:ring-blue-300"
             >
-              <option value="">-- Select Asset --</option>
-              {(assets?.results || []).map((a) => (
-                <option key={a.assetid} value={a.assetid}>
-                  {a.assetname}
+              <option value="">-- Select Asset Inventory --</option>
+              {(inventories?.results || []).map((inv) => (
+                <option key={inv.assetinventoryid} value={inv.assetinventoryid}>
+                  {inv.serialnumber} — {inv.manufacturermodel}
                 </option>
               ))}
             </select>
@@ -131,90 +134,92 @@ export default function AlarmSetup() {
             <select
               value={formData.assetattributemaster}
               onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  assetattributemaster: e.target.value,
-                })
+                setFormData({ ...formData, assetattributemaster: e.target.value })
               }
               className="border p-2 w-full rounded focus:ring focus:ring-blue-300"
             >
               <option value="">-- Select Attribute --</option>
-              {(attributes?.results || []).map((j) => (
-                <option key={j.assetattributemasterid} value={j.assetattributemasterid}>
-                  {j.name}
+              {(assets?.results || []).map((a) => (
+                <option key={a.assetid} value={a.assetid}>
+                  {a.assetname}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* AUTO INPUTS */}
+          {/* ✅ DYNAMIC INPUT FIELDS */}
           {Object.keys(formData)
-            .filter(
-              (k) => k !== "assetinventory" && k !== "assetattributemaster"
-            )
+            .filter((k) => k !== "assetinventory" && k !== "assetattributemaster")
             .map((key) => (
               <div key={key}>
                 <label className="block mb-1 text-sm font-semibold">{key}</label>
                 <input
                   type="text"
                   value={formData[key]}
-                  onChange={(e) =>
-                    setFormData({ ...formData, [key]: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
                   className="border p-2 w-full rounded focus:ring focus:ring-blue-300"
                 />
               </div>
             ))}
 
           <div className="flex items-end">
-            <button
-              type="submit"
-              className="bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md"
-            >
+            <button type="submit" className="bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md">
               {editingId ? "Update" : "Add"}
             </button>
           </div>
         </form>
 
-        {/* ✅ TABLE */}
+        {/* ✅ TABLE ✅ */}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
             <thead className="bg-blue-100">
               <tr>
-                <th className="px-4 py-2">Asset</th>
+                <th className="px-4 py-2">Asset Inv</th>
                 <th className="px-4 py-2">Attribute</th>
-                <th className="px-4 py-2">Serial</th>
-                <th className="px-4 py-2">Pulse</th>
-                <th className="px-4 py-2">Hi</th>
-                <th className="px-4 py-2">Lo</th>
+                <th className="px-4 py-2">sensorserial</th>
+                <th className="px-4 py-2">sensorvalue</th>
+                <th className="px-4 py-2">conversion</th>
+                <th className="px-4 py-2">portnumber</th>
+                <th className="px-4 py-2">testpoint</th>
+                <th className="px-4 py-2">pulsevalue</th>
+                <th className="px-4 py-2">lolimit</th>
+                <th className="px-4 py-2">hilimit</th>
+                <th className="px-4 py-2">wireferrrules</th>
+                <th className="px-4 py-2">activewindowhours</th>
+                <th className="px-4 py-2">isdashboardattribute</th>
+                <th className="px-4 py-2">colorcondition</th>
                 <th className="px-4 py-2">Edit</th>
                 <th className="px-4 py-2">Delete</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {data?.results?.map((item) => (
+              {(data?.results || []).map((item) => (
                 <tr key={item.assetattributelink}>
                   <td className="px-4 py-2">
-                    {
-                      assets?.results?.find(
-                        (a) => a.assetid === item.assetinventory
-                      )?.assetname || item.assetinventory
-                    }
+                    {inventories?.results?.find(
+                      (inv) => inv.assetinventoryid === Number(item.assetinventory)
+                    )?.serialnumber || item.assetinventory}
                   </td>
 
                   <td className="px-4 py-2">
-                    {
-                      attributes?.results?.find(
-                        (j) => j.assetattributemasterid === item.assetattributemaster
-                      )?.name || item.assetattributemaster
-                    }
+                    {assets?.results?.find(
+                      (a) => a.assetid === Number(item.assetattributemaster)
+                    )?.assetname || item.assetattributemaster}
                   </td>
 
                   <td className="px-4 py-2">{item.sensorserial}</td>
+                  <td className="px-4 py-2">{item.sensorvalue}</td>
+                  <td className="px-4 py-2">{item.conversion}</td>
+                  <td className="px-4 py-2">{item.portnumber}</td>
+                  <td className="px-4 py-2">{item.testpoint}</td>
                   <td className="px-4 py-2">{item.pulsevalue}</td>
-                  <td className="px-4 py-2">{item.hilimit}</td>
                   <td className="px-4 py-2">{item.lolimit}</td>
+                  <td className="px-4 py-2">{item.hilimit}</td>
+                  <td className="px-4 py-2">{item.wireferrrules}</td>
+                  <td className="px-4 py-2">{item.activewindowhours}</td>
+                  <td className="px-4 py-2">{item.isdashboardattribute}</td>
+                  <td className="px-4 py-2">{item.colorcondition}</td>
 
                   <td
                     className="px-4 py-2 text-blue-600 cursor-pointer"
@@ -222,7 +227,6 @@ export default function AlarmSetup() {
                   >
                     ✏️ Edit
                   </td>
-
                   <td
                     className="px-4 py-2 text-red-600 cursor-pointer"
                     onClick={() => handleDelete(item.assetattributelink)}
@@ -235,7 +239,8 @@ export default function AlarmSetup() {
           </table>
         </div>
 
-        {/* Pagination */}
+
+        {/* ✅ Pagination */}
         <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
           <p>
             Showing {data?.results?.length || 0} of {data?.count || 0} entries
@@ -260,6 +265,7 @@ export default function AlarmSetup() {
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );

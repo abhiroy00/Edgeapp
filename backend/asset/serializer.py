@@ -35,3 +35,12 @@ class AlarmCreationSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlarmCreation
         fields = '__all__'
+
+
+class AssestAttributelinkSerializer(serializers.ModelSerializer):
+    assetinventory = serializers.PrimaryKeyRelatedField(queryset=AssetInventory.objects.all())
+    assetattributemaster = serializers.PrimaryKeyRelatedField(queryset=AssetAttributeMaster.objects.all())
+
+    class Meta:
+        model = AssestAttributelink
+        fields = "__all__"
