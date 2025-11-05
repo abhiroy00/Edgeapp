@@ -104,14 +104,14 @@ function Typemaster() {
 
                   <td
                     onClick={() => handleEdit(item)}
-                    className="px-4 py-2 text-blue-600 cursor-pointer"
+                    className="px-4 py-2 text-blue-600 cursor-pointer text-center"
                   >
                     ✏ Edit
                   </td>
 
                   <td
                     onClick={() => handleDelete(item.rid)}
-                    className="px-4 py-2 text-red-600 cursor-pointer"
+                    className="px-4 py-2 text-red-600 cursor-pointer text-center"
                   >
                     🗑 Delete
                   </td>
