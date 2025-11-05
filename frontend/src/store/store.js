@@ -15,6 +15,7 @@ import { assetInventoryApi } from "../features/asset/asset_invetory/assetinventr
 import { assetAttributeApi } from "../features/asset/asset_attributes/assetattributeApi";
 import { alarmSetupApi } from "../features/asset/alarm_setup/alarmsetupApi";
 import { alarmCreationApi } from "../features/asset/alarm_creation/alarmcreationApi";
+import { taskmasterApi } from "../features/task_master/taskmasterApi";
 
 
 const store = configureStore({
@@ -34,7 +35,8 @@ const store = configureStore({
     [assetInventoryApi.reducerPath]:assetInventoryApi.reducer,
     [assetAttributeApi.reducerPath]:assetAttributeApi.reducer,
     [alarmSetupApi.reducerPath]:alarmSetupApi.reducer,
-    [alarmCreationApi.reducerPath]:alarmCreationApi.reducer
+    [alarmCreationApi.reducerPath]:alarmCreationApi.reducer,
+    [taskmasterApi.reducerPath]:taskmasterApi.reducer
 
    
 
@@ -57,6 +59,7 @@ const store = configureStore({
       .concat(assetAttributeApi.middleware)
       .concat(alarmSetupApi.middleware)
       .concat(alarmCreationApi.middleware)
+      .concat(taskmasterApi.middleware)
       ,
 
 
