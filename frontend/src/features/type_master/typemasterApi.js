@@ -2,39 +2,43 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const typemasterApi = createApi({
   reducerPath: "typemasterApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://127.0.0.1:8000/api/" }),
-  tagTypes: ["Typemaster"],
+
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://127.0.0.1:8000/api",
+  }),
+
+  tagTypes: ["TypeMaster"],
+
   endpoints: (builder) => ({
     getTypes: builder.query({
-      query: ({ page = 1, page_size = 10, search = "" }) =>
-        `typemaster/?page=${page}&page_size=${page_size}&search=${search}`,
-      providesTags: ["Typemaster"],
+      query: () => "/typemaster/",
+      providesTags: ["TypeMaster"],
     }),
 
     createType: builder.mutation({
       query: (body) => ({
-        url: "typemaster/",
+        url: "/typemaster/",
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Typemaster"],
+      invalidatesTags: ["TypeMaster"],
     }),
 
     updateType: builder.mutation({
-      query: ({ id, ...body }) => ({
-        url: `typemaster/${id}/`,
-        method: "PUT",
-        body,
+      query: ({ rid, maintenancetypename }) => ({
+        url: `/typemaster/${rid}/`,
+        method: "PATCH", // ✅ fixed
+        body: { maintenancetypename },
       }),
-      invalidatesTags: ["Typemaster"],
+      invalidatesTags: ["TypeMaster"],
     }),
 
     deleteType: builder.mutation({
-      query: (id) => ({
-        url: `typemaster/${id}/`,
+      query: (rid) => ({
+        url: `/typemaster/${rid}/`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Typemaster"],
+      invalidatesTags: ["TypeMaster"],
     }),
   }),
 });

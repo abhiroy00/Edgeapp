@@ -17,6 +17,7 @@ import { alarmSetupApi } from "../features/asset/alarm_setup/alarmsetupApi";
 import { alarmCreationApi } from "../features/asset/alarm_creation/alarmcreationApi";
 import { taskmasterApi } from "../features/task_master/taskmasterApi";
 import { typemasterApi } from "../features/type_master/typemasterApi";
+import { statusmasterApi } from "../features/status_master/statusmasterApi";
 
 
 const store = configureStore({
@@ -38,7 +39,8 @@ const store = configureStore({
     [alarmSetupApi.reducerPath]:alarmSetupApi.reducer,
     [alarmCreationApi.reducerPath]:alarmCreationApi.reducer,
     [taskmasterApi.reducerPath]:taskmasterApi.reducer,
-    [typemasterApi.reducerPath]:typemasterApi.reducer
+    [typemasterApi.reducerPath]:typemasterApi.reducer,
+    [statusmasterApi.reducerPath]:statusmasterApi.reducer
 
    
 
@@ -63,6 +65,7 @@ const store = configureStore({
       .concat(alarmCreationApi.middleware)
       .concat(taskmasterApi.middleware)
       .concat(typemasterApi.middleware)
+      .concat(statusmasterApi.middleware)
       ,
 
 
