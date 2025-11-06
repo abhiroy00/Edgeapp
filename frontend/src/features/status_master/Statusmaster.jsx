@@ -7,39 +7,47 @@ import {
 } from "../../features/status_master/statusmasterApi";
 
 function Statusmaster() {
-  const { data } = useGetStatusQuery();
+  const { data, isLoading } = useGetStatusQuery();
   const [addStatus] = useAddStatusMutation();
   const [updateStatus] = useUpdateStatusMutation();
   const [deleteStatus] = useDeleteStatusMutation();
 
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false); // ✅ NEW
+
   const [formData, setFormData] = useState({
-    maintenancetypename: "",
+    statusText: "",
   });
 
-  // ✅ Add + Update Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.maintenancetypename.trim()) return alert("Required!");
+
+    if (!formData.statusText.trim()) return alert("Required!");
+
+    setIsSaving(true); // ✅ start spinner
 
     if (editingId) {
-      await updateStatus({ rid: editingId, ...formData });
+      await updateStatus({ sid: editingId, statusText: formData.statusText });
     } else {
-      await addStatus(formData);
+      await addStatus({ statusText: formData.statusText });
     }
 
-    setFormData({ maintenancetypename: "" });
+    setFormData({ statusText: "" });
     setEditingId(null);
+    setIsSaving(false); // ✅ stop spinner
   };
 
   const handleEdit = (item) => {
-    setEditingId(item.rid);
-    setFormData({ maintenancetypename: item.maintenancetypename });
+    setEditingId(item.sid);
+    setFormData({ statusText: item.statusText });
   };
 
-  const handleDelete = async (rid) => {
-    await deleteStatus(rid);
+  const handleDelete = async (sid) => {
+    setDeletingId(sid);
+    await deleteStatus(sid);
+    setDeletingId(null);
   };
 
   return (
@@ -49,7 +57,12 @@ function Statusmaster() {
           🚨 Status Master
         </h1>
 
-        {/* SEARCH */}
+        {isLoading && (
+          <p className="text-center text-lg font-semibold mb-5">
+            ⏳ Loading...
+          </p>
+        )}
+
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
@@ -60,7 +73,6 @@ function Statusmaster() {
           />
         </div>
 
-        {/* FORM */}
         <form
           onSubmit={handleSubmit}
           className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-6 rounded-lg shadow-inner"
@@ -69,10 +81,10 @@ function Statusmaster() {
             <label className="block mb-1 font-semibold">Status Text</label>
             <input
               type="text"
-              name="maintenancetypename"
-              value={formData.maintenancetypename}
+              name="statusText"
+              value={formData.statusText}
               onChange={(e) =>
-                setFormData({ ...formData, maintenancetypename: e.target.value })
+                setFormData({ ...formData, statusText: e.target.value })
               }
               className="border p-2 w-full rounded"
             />
@@ -81,19 +93,24 @@ function Statusmaster() {
           <div className="flex items-end">
             <button
               type="submit"
-              className="bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md"
+              className="bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md flex items-center gap-2"
             >
-              {editingId ? "Update" : "Add"}
+              {isSaving ? (
+                <span className="animate-spin inline-block border-2 border-white border-t-transparent rounded-full w-5 h-5"></span>
+              ) : editingId ? (
+                "Update"
+              ) : (
+                "Add"
+              )}
             </button>
           </div>
         </form>
 
-        {/* TABLE */}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
             <thead className="bg-blue-100">
               <tr>
-                <th className="px-4 py-2">Maintenance Type</th>
+                <th className="px-4 py-2">Status Text</th>
                 <th className="px-4 py-2">Edit</th>
                 <th className="px-4 py-2">Delete</th>
               </tr>
@@ -102,13 +119,13 @@ function Statusmaster() {
             <tbody className="divide-y divide-gray-200">
               {(data || [])
                 .filter((item) =>
-                  item.maintenancetypename
+                  (item?.statusText || "")
                     .toLowerCase()
                     .includes(search.toLowerCase())
                 )
                 .map((item) => (
-                  <tr key={item.rid}>
-                    <td className="px-4 py-2">{item.maintenancetypename}</td>
+                  <tr key={item.sid}>
+                    <td className="px-4 py-2">{item.statusText}</td>
 
                     <td
                       onClick={() => handleEdit(item)}
@@ -118,10 +135,14 @@ function Statusmaster() {
                     </td>
 
                     <td
-                      onClick={() => handleDelete(item.rid)}
+                      onClick={() => handleDelete(item.sid)}
                       className="px-4 py-2 text-red-600 cursor-pointer"
                     >
-                      🗑 Delete
+                      {deletingId === item.sid ? (
+                        <span className="animate-spin inline-block border-2 border-red-600 border-t-transparent rounded-full w-5 h-5"></span>
+                      ) : (
+                        "🗑 Delete"
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -130,7 +151,7 @@ function Statusmaster() {
         </div>
 
         <p className="mt-4 text-gray-600 text-sm">
-          Showing {data?.length || 0} Types
+          Showing {data?.length || 0} Status
         </p>
       </div>
     </div>

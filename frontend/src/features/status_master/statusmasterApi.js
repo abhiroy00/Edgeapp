@@ -2,18 +2,21 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const statusmasterApi = createApi({
   reducerPath: "statusmasterApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://127.0.0.1:8000/api" }),
+
+  baseQuery: fetchBaseQuery({
+    baseUrl: "http://127.0.0.1:8000/api",
+  }),
 
   tagTypes: ["StatusMaster"],
 
   endpoints: (builder) => ({
-    // GET ALL
+    // ✅ Get all status
     getStatus: builder.query({
       query: () => "/statusmaster/",
       providesTags: ["StatusMaster"],
     }),
 
-    // CREATE
+    // ✅ Add Status
     addStatus: builder.mutation({
       query: (body) => ({
         url: "/statusmaster/",
@@ -23,20 +26,20 @@ export const statusmasterApi = createApi({
       invalidatesTags: ["StatusMaster"],
     }),
 
-    // UPDATE
+    // ✅ Update Status
     updateStatus: builder.mutation({
-      query: ({ rid, ...body }) => ({
-        url: `/statusmaster/${rid}/`,
+      query: ({ sid, ...body }) => ({
+        url: `/statusmaster/${sid}/`,
         method: "PUT",
         body,
       }),
       invalidatesTags: ["StatusMaster"],
     }),
 
-    // DELETE
+    // ✅ Delete Status
     deleteStatus: builder.mutation({
-      query: (rid) => ({
-        url: `/statusmaster/${rid}/`,
+      query: (sid) => ({
+        url: `/statusmaster/${sid}/`,
         method: "DELETE",
       }),
       invalidatesTags: ["StatusMaster"],
