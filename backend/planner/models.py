@@ -5,12 +5,12 @@ from users.models import UserMaster
 # Create your models here.
 class ScheduleCreation(models.Model):
     schedule = models.AutoField(primary_key=True)
-    task = models.ForeignKey(TaskMaster, on_delete=models.CASCADE, related_name='taskmaster')
-    maintenancetype = models.ForeignKey(TypeMaster, on_delete=models.CASCADE, related_name='typemaster')
-    startDate =models.DateField()
+    task = models.ForeignKey(TaskMaster, on_delete=models.CASCADE, related_name='schedule_tasks')
+    maintenancetype = models.ForeignKey(TypeMaster, on_delete=models.CASCADE, related_name='schedule_types')
+    startDate = models.DateField()
     completeDate = models.DateField()
     scheduleDate = models.DateField()
-    status = models.ForeignKey(StatusMaster, on_delete=models.CASCADE, related_name='statusmaster')
+    status = models.ForeignKey(StatusMaster, on_delete=models.CASCADE, related_name='schedule_status')
     isBlockrequired = models.IntegerField()
     blockStartStamp = models.IntegerField()
     blockEndStamp = models.IntegerField()
@@ -23,9 +23,10 @@ class ScheduleCreation(models.Model):
     auto_cardStamp = models.IntegerField()
     auto_smsStamp = models.IntegerField()
     auto_assignStamp = models.IntegerField()
-    user = models.ForeignKey(UserMaster, on_delete=models.CASCADE, related_name='usermaster')
+    user = models.ForeignKey(UserMaster, on_delete=models.CASCADE, related_name='schedule_users')
     app_feedback = models.TextField(blank=True, null=True)
     app_latitude = models.CharField(max_length=100, blank=True, null=True)
     app_longitude = models.CharField(max_length=100, blank=True, null=True)
+
 
 

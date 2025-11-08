@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     "drf_spectacular_sidecar",
     'junction',
     'asset',
-    'maintenance'
+    'maintenance',
+    'planner'
 ]
 
 MIDDLEWARE = [

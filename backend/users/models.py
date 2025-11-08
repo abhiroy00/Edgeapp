@@ -52,7 +52,7 @@ class UserMaster(models.Model):
     userlevel=models.ForeignKey(UserLevelMaster,on_delete=models.CASCADE,related_name="userlevelmaster")
     userrole=models.ForeignKey(UserRoleMaster,on_delete=models.CASCADE,related_name="userrolemaster")
     username=models.CharField(max_length=200)
-    userphone=models.IntegerField()
+    userphone=models.CharField(max_length=20)
     usermail=models.EmailField()
     userdesignation=models.CharField(max_length=200)
     alertrecipient=models.IntegerField()
