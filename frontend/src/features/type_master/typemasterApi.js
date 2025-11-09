@@ -10,9 +10,23 @@ export const typemasterApi = createApi({
   tagTypes: ["TypeMaster"],
 
   endpoints: (builder) => ({
+    // 🔹 Get Types with pagination
     getTypes: builder.query({
-      query: () => "/typemaster/",
+      query: ({ page = 1, pageSize = 10, search = "" } = {}) =>
+        `/typemaster/?page=${page}&page_size=${pageSize}&search=${search}`,
       providesTags: ["TypeMaster"],
+    }),
+
+    // 🔹 Get All Types for Dropdown (no pagination limit)
+    getTypesDropdown: builder.query({
+      query: () => `/typemaster/?page_size=1000`,
+      providesTags: ["TypeMaster"],
+      transformResponse: (response) => {
+        // Handle both paginated and non-paginated responses
+        if (Array.isArray(response)) return response;
+        if (response.results) return response.results;
+        return [];
+      },
     }),
 
     createType: builder.mutation({
@@ -27,7 +41,7 @@ export const typemasterApi = createApi({
     updateType: builder.mutation({
       query: ({ rid, maintenancetypename }) => ({
         url: `/typemaster/${rid}/`,
-        method: "PATCH", // ✅ fixed
+        method: "PATCH",
         body: { maintenancetypename },
       }),
       invalidatesTags: ["TypeMaster"],
@@ -45,6 +59,7 @@ export const typemasterApi = createApi({
 
 export const {
   useGetTypesQuery,
+  useGetTypesDropdownQuery,
   useCreateTypeMutation,
   useUpdateTypeMutation,
   useDeleteTypeMutation,

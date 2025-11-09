@@ -4,11 +4,12 @@ import {
   useCreateScheduleMutation,
   useUpdateScheduleMutation,
   useDeleteScheduleMutation,
-  useGetTasksQuery,
-  useGetTypesQuery,
-  useGetStatusQuery,
-  useGetUsersQuery,
 } from './schedulecreationApi';
+
+import { useGetTasksQuery } from '../task_master/taskmasterApi';
+import { useGetTypesDropdownQuery } from '../type_master/typemasterApi';
+import { useGetStatusQuery } from '../status_master/statusmasterApi';
+import { useGetUsersDropdownQuery } from '../user/users/userApi';
 
 function ScheduleCreation() {
   const [page, setPage] = useState(1);
@@ -42,11 +43,17 @@ function ScheduleCreation() {
   });
 
   // API Queries
-  const { data: schedules, isLoading } = useGetSchedulesQuery({ page, page_size: pageSize });
-  const { data: tasks } = useGetTasksQuery();
-  const { data: maintenanceTypes } = useGetTypesQuery();
-  const { data: statusList } = useGetStatusQuery();
-  const { data: users } = useGetUsersQuery();
+const { data: schedules, isLoading } = useGetSchedulesQuery({ page, page_size: pageSize });
+const { data: tasks, isLoading: tasksLoading } = useGetTasksQuery();
+const { data: TypeMaster, isLoading: typesLoading } = useGetTypesDropdownQuery();
+const { data: users, isLoading: usersLoading, error: usersError } = useGetUsersDropdownQuery();
+const { data: StatusMaster, isLoading: statusLoading } = useGetStatusQuery();
+const normalize = (data) => (Array.isArray(data) ? data : data?.results || []);
+
+  // Debug log to check users data
+  console.log('Users data:', users);
+  console.log('Users loading:', usersLoading);
+  console.log('Users error:', usersError);
 
   // API Mutations
   const [createSchedule] = useCreateScheduleMutation();
@@ -165,36 +172,55 @@ function ScheduleCreation() {
       <div className="bg-white shadow-lg rounded-lg p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Task Select */}
-          <select
-            name="task"
-            value={formData.task}
-            onChange={handleChange}
-            className="border p-2 rounded"
-            required
-          >
-            <option value="">Select Task</option>
-            {normalizeData(tasks).map((task) => (
-              <option key={task.id || task.taskid} value={task.id || task.taskid}>
-                {task.name || task.taskname || task.task_name}
+          <div>
+            <label className="block mb-1 font-semibold">Task</label>
+            <select
+              name="task"
+              value={formData.task}
+              onChange={handleChange}
+              className="border p-2 w-full rounded"
+              required
+              disabled={tasksLoading}
+            >
+              <option value="">
+                {tasksLoading ? 'Loading tasks...' : 'Select Task'}
               </option>
-            ))}
-          </select>
+              {normalizeData(tasks).map((task) => (
+                <option key={task.id || task.taskid} value={task.id || task.taskid}>
+                  {task.name || task.taskname || task.task_name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Maintenance Type Select */}
-          <select
-            name="maintenanceType"
-            value={formData.maintenanceType}
-            onChange={handleChange}
-            className="border p-2 rounded"
-            required
-          >
-            <option value="">Select Maintenance Type</option>
-            {normalizeData(maintenanceTypes).map((type) => (
-              <option key={type.id || type.typeid} value={type.id || type.typeid}>
-                {type.name || type.typename || type.type_name}
-              </option>
-            ))}
-          </select>
+
+
+          {/* Maintenance Type Select */}
+<div>
+  <label className="block mb-1 font-semibold">Maintenance Type</label>
+  <select
+  name="maintenanceType"
+  value={formData.maintenanceType}
+  onChange={handleChange}
+  className="border p-2 w-full rounded"
+  required
+  disabled={typesLoading}
+>
+  <option value="">
+    {typesLoading ? "Loading types..." : "Select Maintenance Type"}
+  </option>
+
+  {normalizeData(TypeMaster).map((type) => (
+    <option key={type.rid} value={type.rid}>
+      {type.maintenancetypename}
+    </option>
+  ))}
+</select>
+
+</div>
+
+         
 
           {/* Start Date */}
           <div>
@@ -235,19 +261,24 @@ function ScheduleCreation() {
           {/* Status Select */}
           <div>
             <label className="block mb-1 font-semibold">Status</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="border p-2 w-full rounded"
-            >
-              <option value="">Select Status</option>
-              {normalizeData(statusList).map((status) => (
-                <option key={status.id || status.statusid} value={status.id || status.statusid}>
-                  {status.name || status.statusname || status.status_name}
-                </option>
-              ))}
-            </select>
+          <select
+  name="status"
+  value={formData.status}
+  onChange={handleChange}
+  disabled={statusLoading}
+  className="border p-2 w-full rounded"
+>
+  <option value="">
+    {statusLoading ? "Loading Status..." : "Select Status"}
+  </option>
+
+  {normalize(StatusMaster).map((status) => (
+    <option key={status.sid} value={status.sid}>
+      {status.statusText}
+    </option>
+  ))}
+</select>
+
           </div>
 
           {/* Is Block Required */}
@@ -398,19 +429,28 @@ function ScheduleCreation() {
           </div>
 
           {/* User Select */}
-          <select
-            name="user"
-            value={formData.user}
-            onChange={handleChange}
-            className="border p-2 rounded"
-          >
-            <option value="">Select User</option>
-            {normalizeData(users).map((user) => (
-              <option key={user.id || user.userid} value={user.id || user.userid}>
-                {user.name || user.username || user.user_name}
+          <div>
+            <label className="block mb-1 font-semibold">User</label>
+            <select
+              name="user"
+              value={formData.user}
+              onChange={handleChange}
+              className="border p-2 w-full rounded"
+              disabled={usersLoading}
+            >
+              <option value="">
+                {usersLoading ? 'Loading users...' : 'Select User'}
               </option>
-            ))}
-          </select>
+              {normalizeData(users).map((user) => (
+                <option key={user.id || user.userid} value={user.id || user.userid}>
+                  {user.name || user.username || user.user_name || user.email}
+                </option>
+              ))}
+            </select>
+            {usersError && (
+              <p className="text-red-500 text-sm mt-1">Error loading users: {usersError.message}</p>
+            )}
+          </div>
         </div>
 
         {/* App Feedback */}
@@ -504,20 +544,19 @@ function ScheduleCreation() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="21" className="text-center p-4">
+                <td colSpan="20" className="text-center p-4">
                   Loading...
                 </td>
               </tr>
             ) : normalizeData(schedules).length === 0 ? (
               <tr>
-                <td colSpan="21" className="text-center p-4 text-gray-500">
+                <td colSpan="20" className="text-center p-4 text-gray-500">
                   No schedules found. Create your first schedule!
                 </td>
               </tr>
             ) : (
               normalizeData(schedules).map((schedule) => (
                 <tr key={schedule.id || schedule.scheduleid} className="hover:bg-gray-50">
-                 
                   <td className="px-3 py-2 border">{schedule.task_name || schedule.task || 'N/A'}</td>
                   <td className="px-3 py-2 border">{schedule.maintenancetype_name || schedule.maintenanceType || 'N/A'}</td>
                   <td className="px-3 py-2 border">{schedule.completeDate || 'N/A'}</td>
@@ -541,13 +580,13 @@ function ScheduleCreation() {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEdit(schedule)}
-                        className="bg-yellow-400 text-white px-2 py-1 rounded"
+                        className="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(schedule.id || schedule.scheduleid)}
-                        className="bg-red-500 text-white px-2 py-1 rounded"
+                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
                       >
                         Delete
                       </button>
@@ -564,7 +603,7 @@ function ScheduleCreation() {
           <button
             disabled={!schedules?.previous}
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
           >
             Prev
           </button>
@@ -574,7 +613,7 @@ function ScheduleCreation() {
           <button
             disabled={!schedules?.next}
             onClick={() => setPage((p) => p + 1)}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
           >
             Next
           </button>
