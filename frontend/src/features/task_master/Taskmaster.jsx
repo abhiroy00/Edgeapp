@@ -99,7 +99,7 @@ function Taskmaster() {
           className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-6 rounded-lg shadow-inner"
         >
           <div>
-            <label className="block mb-1 font-semibold">physicalasset</label>
+            <label className="block mb-1 font-semibold">PhysicalAsset</label>
             <input
               type="text"
               name="physicalasset"
@@ -110,7 +110,7 @@ function Taskmaster() {
           </div>
 
           <div>
-            <label className="block mb-1 font-semibold">taskname</label>
+            <label className="block mb-1 font-semibold">TaskName</label>
             <input
               type="text"
               name="taskname"
@@ -121,7 +121,7 @@ function Taskmaster() {
           </div>
 
           <div>
-            <label className="block mb-1 font-semibold">frequency_days</label>
+            <label className="block mb-1 font-semibold">Frequency_Days</label>
             <input
               type="number"
               name="frequency_days"
@@ -132,7 +132,7 @@ function Taskmaster() {
           </div>
 
           <div>
-            <label className="block mb-1 font-semibold">severity</label>
+            <label className="block mb-1 font-semibold">Severity</label>
             <input
               type="number"
               name="severity"
@@ -144,7 +144,7 @@ function Taskmaster() {
 
           <div>
             <label className="block mb-1 font-semibold">
-              schedulelimitdate
+              ScheduleLimitDate
             </label>
             <input
               type="date"
@@ -157,7 +157,7 @@ function Taskmaster() {
 
           <div>
             <label className="block mb-1 font-semibold">
-              isBlockrequired
+              ISBlockrequired
             </label>
             <input
               type="checkbox"
@@ -183,13 +183,13 @@ function Taskmaster() {
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
             <thead className="bg-blue-100">
               <tr>
-                <th className="px-4 py-2">taskmaster</th>
-                <th className="px-4 py-2">physicalasset</th>
-                <th className="px-4 py-2">taskname</th>
-                <th className="px-4 py-2">frequency_days</th>
-                <th className="px-4 py-2">severity</th>
-                <th className="px-4 py-2">schedulelimitdate</th>
-                <th className="px-4 py-2">isBlockrequired</th>
+                <th className="px-4 py-2">TaskMaster</th>
+                <th className="px-4 py-2">PhysicalAsset</th>
+                <th className="px-4 py-2">TaskName</th>
+                <th className="px-4 py-2">Frequency_Days</th>
+                <th className="px-4 py-2">Severity</th>
+                <th className="px-4 py-2">ScheduleLimitDate</th>
+                <th className="px-4 py-2">ISBlockrequired</th>
                 <th className="px-4 py-2">Edit</th>
                 <th className="px-4 py-2">Delete</th>
               </tr>

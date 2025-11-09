@@ -88,8 +88,8 @@ export default function Rack() {
   return (
     <div className="w-full mt-30 min-h-screen bg-gray-100 flex justify-center py-10">
       <div className="w-full max-w-7xl bg-white shadow-xl rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5">
-          Junction Box
+        <h1 className="text-3xl font-bold text-[oklch(0.43_0.27_303.85)] mb-5">
+          🛠️ Junction Box
         </h1>
 
         <div className="flex justify-between items-center mb-6">
@@ -183,7 +183,7 @@ export default function Rack() {
 
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded shadow-md hover:scale-105"
+            className="bg-[oklch(0.42_0.27_303.85)] text-white px-6 py-2 rounded shadow-md hover:scale-105"
           >
             {editingId ? "Update Junction Box" : "Add Junction Box"}
           </button>

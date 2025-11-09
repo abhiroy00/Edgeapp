@@ -118,7 +118,7 @@ function Typemaster() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table> 
         </div>
 
         <p className="mt-4 text-gray-600 text-sm">
