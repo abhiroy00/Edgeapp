@@ -11,7 +11,7 @@ import { useGetUserLevelsQuery } from "../user_level/userLevelApi";
 import { useGetUserRolesQuery } from "../user_role/userRoleApi";
 import { useGetZonesQuery } from "../../location/zone/zoneApi";
 import { useGetDivisionsQuery } from "../../location/division/divisionApi";
-import { useGetStationsQuery } from "../../location/station/stationApi";
+import { useGetAllStationsQuery } from "../../location/station/stationApi";
 
 export default function Users() {
   const [page, setPage] = useState(1);
@@ -42,7 +42,7 @@ export default function Users() {
   const { data: userRoles } = useGetUserRolesQuery();
   const { data: zones } = useGetZonesQuery();
   const { data: divisions } = useGetDivisionsQuery();
-  const { data: stations } = useGetStationsQuery();
+  const { data: stations } = useGetAllStationsQuery();
 
   // CRUD hooks
   const { data: users, isLoading } = useGetUsersQuery({ page, pageSize });
