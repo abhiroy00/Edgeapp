@@ -3,15 +3,18 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const assetInventoryApi = createApi({
   reducerPath: "assetInventoryApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://127.0.0.1:8000/api/", // 🔹 Change this to your backend URL
+    baseUrl: "http://127.0.0.1:8000/api/",
   }),
   tagTypes: ["AssetInventory"],
   endpoints: (builder) => ({
     getInventories: builder.query({
-      query: ({ search = "", page = 1 }) =>
-        `assetinventory/?search=${search}&page=${page}`,
+      query: (args = {}) => {
+        const { search = "", page = 1 } = args;
+        return `assetinventory/?search=${search}&page=${page}`;
+      },
       providesTags: ["AssetInventory"],
     }),
+    
     createInventory: builder.mutation({
       query: (body) => ({
         url: "assetinventory/",
@@ -20,6 +23,7 @@ export const assetInventoryApi = createApi({
       }),
       invalidatesTags: ["AssetInventory"],
     }),
+    
     updateInventory: builder.mutation({
       query: ({ id, ...body }) => ({
         url: `assetinventory/${id}/`,
@@ -28,6 +32,7 @@ export const assetInventoryApi = createApi({
       }),
       invalidatesTags: ["AssetInventory"],
     }),
+    
     deleteInventory: builder.mutation({
       query: (id) => ({
         url: `assetinventory/${id}/`,

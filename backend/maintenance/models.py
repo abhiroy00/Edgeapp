@@ -5,6 +5,7 @@ from junction.models import Severitymaster
 # Create your models here.
 
 class TaskMaster(models.Model):
+    machinename = models.CharField(max_length=255, null=True, blank=True)
     taskmaster = models.AutoField(primary_key=True)
     physicalasset = models.ForeignKey(AssetInventory, on_delete=models.CASCADE, related_name='asset_inventory')
     taskname = models.CharField(max_length=200)

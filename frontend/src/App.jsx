@@ -29,7 +29,6 @@ import Asset_MTBF_MTTR from './features/asset/asset_master/asset_mtbf_mttr.jsx/A
 import AssetPerformance from './features/asset/asset_master/asset_performance/AssetPerformance'
 import Entity from './features/location/entity/Entity'
 import Planner from './features/planner/Planner'
-import TaskAssign from './features/planner/taskassign/TaskAssign'
 import Feedback from './features/planner/feedback/Feedback'
 import ProfileSettings from './features/profile/profile_setting/ProfileSetting'
 import ProfileView from './features/profile/profile_setting/ProfileView'
@@ -41,6 +40,8 @@ import Statusmaster from './features/status_master/Statusmaster'
 import Schedulecreation from './features/schedulecreation/Schedulecreation'
 import { Rose } from 'lucide-react'
 import Roster from './features/roster/Roster'
+import TaskAssign from './features/planner/taskassign/TaskAssign'
+import TaskCloser from './features/task_closer/TaskCloser'
 
 export default function App() {
   const router = createBrowserRouter([
@@ -215,6 +216,14 @@ export default function App() {
         {
           path:"/maintenance/roster",
           element:<Roster></Roster>
+        },
+        {
+          path:"/maitenance/taskassgn",
+          element:<TaskAssign></TaskAssign>
+        },
+        {
+          path:"/maitenance/taskclose",
+          element:<TaskCloser></TaskCloser>
         }
 
 

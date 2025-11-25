@@ -10,13 +10,13 @@ export const taskmasterApi = createApi({
   tagTypes: ["TaskMaster"],
 
   endpoints: (builder) => ({
-    // ✅ Get all tasks
+    // Get All Tasks
     getTasks: builder.query({
       query: () => "/taskmaster/",
       providesTags: ["TaskMaster"],
     }),
 
-    // ✅ Create task
+    // Create Task
     createTask: builder.mutation({
       query: (body) => ({
         url: "/taskmaster/",
@@ -26,7 +26,7 @@ export const taskmasterApi = createApi({
       invalidatesTags: ["TaskMaster"],
     }),
 
-    // ✅ Update task
+    // Update Task
     updateTask: builder.mutation({
       query: ({ id, ...body }) => ({
         url: `/taskmaster/${id}/`,
@@ -36,7 +36,7 @@ export const taskmasterApi = createApi({
       invalidatesTags: ["TaskMaster"],
     }),
 
-    // ✅ Delete task
+    // Delete Task
     deleteTask: builder.mutation({
       query: (id) => ({
         url: `/taskmaster/${id}/`,

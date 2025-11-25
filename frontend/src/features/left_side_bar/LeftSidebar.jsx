@@ -9,7 +9,7 @@ export default function LeftSidebar() {
 
   const toggleDropdown = (menu) => {
     setOpenDropdown(openDropdown === menu ? null : menu);
-    if (menu !== 'configuration') setOpenConfigSub(null);
+    if (menu !== 'configuration' && menu !== 'planner') setOpenConfigSub(null);
   };
 
   const toggleConfigSub = (menu) => {
@@ -19,11 +19,17 @@ export default function LeftSidebar() {
   const dashboardItems = [{ name: 'Overview', path: '/dashboard' }];
 
   const plannerItems = [
-    { name: 'Schedule Creation', path: '/maintenance/schedulecreation' },
+    {
+      name: 'Schedule Creation',
+      key: 'scheduleCreation',
+      subItems: [
+        { name: 'Task Assign', path: '/maitenance/taskassgn' },
+        { name: 'Task Closer', path: '/maitenance/taskclose' }
+      ],
+    },
     { name: 'Roster', path: '/maintenance/roster' },
     { name: 'Task Assign', path: '/planner/taskassign' },
     { name: 'Feedback', path: '/planner/taskfeedback' },
-
   ];
 
   const reportsItems = [
@@ -60,21 +66,19 @@ export default function LeftSidebar() {
   ];
 
   const configurationItems = [
-  { name: 'Location Setup', key: 'locationSetup', subItems: locationItems },
-  { name: 'Assets', key: 'assets', subItems: assetItems },
-  { name: 'User', key: 'userMenu', subItems: userItems },
-  {
-    name: 'Maintenance',
-    key: 'maintenance',
-    subItems: [
-      { name: 'Task Master', path: '/maintenance/taskmaster' },
-      { name: 'Type Master', path: '/maintenance/typemaster' },
-      { name: 'Status Master', path: '/maintenance/statusmaster' },
-    
-
-    ],
-  },
-];
+    { name: 'Location Setup', key: 'locationSetup', subItems: locationItems },
+    { name: 'Assets', key: 'assets', subItems: assetItems },
+    { name: 'User', key: 'userMenu', subItems: userItems },
+    {
+      name: 'Maintenance',
+      key: 'maintenance',
+      subItems: [
+        { name: 'Task Master', path: '/maintenance/taskmaster' },
+        { name: 'Type Master', path: '/maintenance/typemaster' },
+        { name: 'Status Master', path: '/maintenance/statusmaster' },
+      ],
+    },
+  ];
 
   const ArrowIcon = ({ open }) => (
     <svg
@@ -166,17 +170,44 @@ export default function LeftSidebar() {
           </div>
           {openDropdown === 'planner' &&
             plannerItems.map((item, idx) => (
-              <Link
-                key={idx}
-                to={item.path}
-                className={`block ml-6 mt-1 p-2 rounded-lg ${
-                  location.pathname === item.path
-                    ? 'bg-fuchsia-900 text-white'
-                    : 'bg-fuchsia-200 hover:bg-fuchsia-900'
-                }`}
-              >
-                {item.name}
-              </Link>
+              <div key={idx}>
+                {item.subItems ? (
+                  <>
+                    <div
+                      className="block ml-6 mt-1 p-2 rounded-lg hover:bg-fuchsia-900 cursor-pointer flex items-center justify-between"
+                      onClick={() => toggleConfigSub(item.key)}
+                    >
+                      {item.name} <ArrowIcon open={openConfigSub === item.key} />
+                    </div>
+
+                    {openConfigSub === item.key &&
+                      item.subItems.map((sub, i) => (
+                        <Link
+                          key={i}
+                          to={sub.path}
+                          className={`block ml-12 mt-1 p-2 rounded-lg ${
+                            location.pathname === sub.path
+                              ? 'bg-fuchsia-900 text-white'
+                              : 'bg-fuchsia-200 hover:bg-fuchsia-900'
+                          }`}
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                  </>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`block ml-6 mt-1 p-2 rounded-lg ${
+                      location.pathname === item.path
+                        ? 'bg-fuchsia-900 text-white'
+                        : 'bg-fuchsia-200 hover:bg-fuchsia-900'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                )}
+              </div>
             ))}
         </div>
 
