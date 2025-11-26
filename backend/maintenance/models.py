@@ -8,21 +8,6 @@ from junction.models import Severitymaster
 from users.models import UserMaster
 
 
-class TaskMaster(models.Model):
-    machinename = models.CharField(max_length=255, null=True, blank=True)
-    taskmaster = models.AutoField(primary_key=True)
-    physicalasset = models.ForeignKey(AssetInventory, on_delete=models.CASCADE, related_name='asset_inventory')
-    taskname = models.CharField(max_length=200)
-    frequency_days = models.IntegerField()
-    severity = models.ForeignKey(Severitymaster, on_delete=models.CASCADE, related_name='severitymaster')
-    schedulelimitdate = models.DateField()
-    isBlockrequired = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.taskname} - {self.machinename}"
-    
 
 class TypeMaster(models.Model):
     rid = models.AutoField(primary_key=True)
@@ -38,6 +23,23 @@ class StatusMaster(models.Model):
    
     def __str__(self):
         return f"{self.sid}"
+
+
+class TaskMaster(models.Model):
+    machinename = models.CharField(max_length=255, null=True, blank=True)
+    taskmaster = models.AutoField(primary_key=True)
+    physicalasset = models.ForeignKey(AssetInventory, on_delete=models.CASCADE, related_name='asset_inventory')
+    taskname = models.CharField(max_length=200)
+    frequency_days = models.IntegerField()
+    severity = models.ForeignKey(Severitymaster, on_delete=models.CASCADE, related_name='severitymaster')
+    schedulelimitdate = models.DateField()
+    isBlockrequired = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.taskname} - {self.machinename}"
+    
    
 
 class TaskAssignment(models.Model):
