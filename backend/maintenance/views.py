@@ -6,64 +6,42 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.paginator import Paginator
 from django.db.models import Q
+from .models import TaskMaster, TypeMaster, StatusMaster, TaskAssignment
+from .serializer import TaskMasterSerializer, TypeMasterSerializer, StatusMasterSerializer,TaskAssignmentSerializer
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from datetime import datetime, timedelta
 
-from .models import TaskMaster, TypeMaster, StatusMaster
-from .serializer import TaskMasterSerializer, TypeMasterSerializer, StatusMasterSerializer
 
 
-# ✅ TASK MASTER VIEW
 class TaskMasterAPIView(APIView):
-    """
-    CRUD + Search + Pagination for TaskMaster
-    """
 
     def get(self, request, pk=None):
-        # ✅ Single record
         if pk:
             try:
                 task = TaskMaster.objects.get(pk=pk)
-                serializer = TaskMasterSerializer(task)
-                return Response(serializer.data, status=status.HTTP_200_OK)
             except TaskMaster.DoesNotExist:
                 return Response({"error": "TaskMaster not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # ✅ List + Search + Pagination
-        search = request.GET.get("search", "")
-        page = int(request.GET.get("page", 1))
-        page_size = int(request.GET.get("page_size", 10))
+            serializer = TaskMasterSerializer(task)
+            return Response(serializer.data)
 
-        queryset = TaskMaster.objects.all().order_by("-taskmaster")
-
-        if search:
-            queryset = queryset.filter(
-                Q(taskname__icontains=search)
-                | Q(frequency_days__icontains=search)
-                | Q(schedulelimitdate__icontains=search)
-            )
-
-        paginator = Paginator(queryset, page_size)
-        page_obj = paginator.get_page(page)
-        serializer = TaskMasterSerializer(page_obj, many=True)
-
-        return Response({
-            "count": paginator.count,
-            "total_pages": paginator.num_pages,
-            "current_page": page_obj.number,
-            "results": serializer.data
-        }, status=status.HTTP_200_OK)
+        # List all
+        queryset = TaskMaster.objects.all()
+        serializer = TaskMasterSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     def post(self, request):
         serializer = TaskMasterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Task created successfully", "data": serializer.data},
-                            status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk=None):
         if not pk:
-            return Response({"error": "ID required for update"}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"error": "ID required"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             task = TaskMaster.objects.get(pk=pk)
         except TaskMaster.DoesNotExist:
@@ -72,37 +50,168 @@ class TaskMasterAPIView(APIView):
         serializer = TaskMasterSerializer(task, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Updated successfully", "data": serializer.data},
-                            status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk=None):
-        if not pk:
-            return Response({"error": "ID required for partial update"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            task = TaskMaster.objects.get(pk=pk)
-        except TaskMaster.DoesNotExist:
-            return Response({"error": "TaskMaster not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = TaskMasterSerializer(task, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Partially updated", "data": serializer.data},
-                            status=status.HTTP_200_OK)
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk=None):
         if not pk:
-            return Response({"error": "ID required for delete"}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"error": "ID required"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             task = TaskMaster.objects.get(pk=pk)
         except TaskMaster.DoesNotExist:
             return Response({"error": "TaskMaster not found"}, status=status.HTTP_404_NOT_FOUND)
 
         task.delete()
-        return Response({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class GenerateScheduleAPIView(APIView):
+
+    def post(self, request, pk):
+        try:
+            task_master = TaskMaster.objects.get(pk=pk)
+        except TaskMaster.DoesNotExist:
+            return Response({"error": "TaskMaster not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.data.get('regenerate', False):
+            TaskAssignment.objects.filter(taskmaster=task_master).delete()
+
+        today = datetime.now().date()
+        end_date = task_master.schedulelimitdate
+        frequency = task_master.frequency_days
+
+        total_days = (end_date - today).days
+        if total_days <= 0:
+            return Response({"error": "Schedule limit date must be in the future"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        number_of_tasks = total_days // frequency
+
+        assignments = []
+        for i in range(1, number_of_tasks + 1):
+            scheduled_date = today + timedelta(days=i * frequency)
+
+            if scheduled_date <= end_date:
+                assignment = TaskAssignment.objects.create(
+                    taskmaster=task_master,
+                    task_number=i,
+                    scheduled_date=scheduled_date,
+                    status='pending'
+                )
+                assignments.append(assignment)
+
+        serializer = TaskAssignmentSerializer(assignments, many=True)
+        return Response({
+            "message": f"Generated {len(assignments)} task assignments",
+            "assignments": serializer.data
+        })
+
+
+class TaskAssignmentAPIView(APIView):
+
+    def get(self, request, pk=None):
+        queryset = TaskAssignment.objects.all()
+
+        taskmaster_id = request.GET.get('taskmaster')
+        status_filter = request.GET.get('status')
+
+        if taskmaster_id:
+            queryset = queryset.filter(taskmaster_id=taskmaster_id)
+
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        if pk:
+            try:
+                task = TaskAssignment.objects.get(pk=pk)
+            except TaskAssignment.DoesNotExist:
+                return Response({"error": "TaskAssignment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = TaskAssignmentSerializer(task)
+            return Response(serializer.data)
+
+        serializer = TaskAssignmentSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = TaskAssignmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk=None):
+        if not pk:
+            return Response({"error": "ID required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            assignment = TaskAssignment.objects.get(pk=pk)
+        except TaskAssignment.DoesNotExist:
+            return Response({"error": "TaskAssignment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TaskAssignmentSerializer(assignment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk=None):
+        if not pk:
+            return Response({"error": "ID required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            assignment = TaskAssignment.objects.get(pk=pk)
+        except TaskAssignment.DoesNotExist:
+            return Response({"error": "TaskAssignment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        assignment.delete()
+        return Response({"message": "Deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class MarkCompleteAPIView(APIView):
+    def post(self, request, pk):
+        try:
+            assignment = TaskAssignment.objects.get(pk=pk)
+        except TaskAssignment.DoesNotExist:
+            return Response({"error": "TaskAssignment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        assignment.completed_date = datetime.now().date()
+        assignment.status = 'completed'
+        assignment.notes = request.data.get("notes", "")
+        assignment.save()
+
+        serializer = TaskAssignmentSerializer(assignment)
+        return Response(serializer.data)
+
+
+class MarkPendingAPIView(APIView):
+    def post(self, request, pk):
+        try:
+            assignment = TaskAssignment.objects.get(pk=pk)
+        except TaskAssignment.DoesNotExist:
+            return Response({"error": "TaskAssignment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        assignment.completed_date = None
+        assignment.status = 'pending'
+        assignment.save()
+
+        serializer = TaskAssignmentSerializer(assignment)
+        return Response(serializer.data)
+
+
+class BulkCompleteAPIView(APIView):
+    def post(self, request):
+        ids = request.data.get('assignment_ids', [])
+        assignments = TaskAssignment.objects.filter(id__in=ids)
+
+        assignments.update(
+            completed_date=datetime.now().date(),
+            status="completed"
+        )
+
+        return Response({
+            "message": f"{assignments.count()} tasks marked completed"
+        })
 
 
 # ✅ TYPE MASTER VIEW

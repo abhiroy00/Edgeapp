@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   useGetTasksQuery,
   useCreateTaskMutation,
   useDeleteTaskMutation,
   useUpdateTaskMutation,
 } from "./taskmasterApi";
-
 import { useGetInventoriesQuery } from "../../features/asset/asset_invetory/assetinventryApi";
 import { useGetSeveritiesQuery } from "../../features/severity_master/SeveritymasterApi";
+import { useGenerateScheduleMutation } from "../task_assign/taskAssignmentApi";
 
 function Taskmaster() {
   const [formData, setFormData] = useState({
@@ -19,39 +20,55 @@ function Taskmaster() {
     schedulelimitdate: "",
     isBlockrequired: false,
   });
-
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [isGeneratingSchedule, setIsGeneratingSchedule] = useState(false);
+  const navigate = useNavigate();
 
-  // Fix: Pass empty object as default to avoid undefined errors
-  const { data, isLoading } = useGetTasksQuery();
+  const { data, isLoading, refetch } = useGetTasksQuery();
   const { data: AssetInventoryData, isLoading: isLoadingAssets } = useGetInventoriesQuery({});
   const { data: SeverityData, isLoading: isLoadingSeverity } = useGetSeveritiesQuery({});
 
-  // Extract results array from API response
   const AssetInventory = AssetInventoryData?.results || [];
   const Severity = SeverityData?.results || [];
 
   const [createTask] = useCreateTaskMutation();
   const [updateTask] = useUpdateTaskMutation();
   const [deleteTask] = useDeleteTaskMutation();
+  const [generateSchedule] = useGenerateScheduleMutation();
 
-  // Helper function to get asset name by id
+  // Calculate scheduled dates based on frequency
+  const calculateSchedule = (frequency, limitDate) => {
+    if (!frequency || !limitDate) return [];
+    const today = new Date();
+    const endDate = new Date(limitDate);
+    const totalDays = Math.floor((endDate - today) / (1000 * 60 * 60 * 24));
+    if (totalDays <= 0) return [];
+    const numberOfTasks = Math.floor(totalDays / frequency);
+    const schedule = [];
+    for (let i = 1; i <= numberOfTasks; i++) {
+      const scheduledDate = new Date(today);
+      scheduledDate.setDate(today.getDate() + (i * frequency));
+      if (scheduledDate <= endDate) {
+        schedule.push({
+          taskNumber: i,
+          scheduledDate: scheduledDate.toISOString().split('T')[0],
+          daysFromNow: i * frequency,
+        });
+      }
+    }
+    return schedule;
+  };
+
   const getAssetName = (assetId) => {
     if (!assetId) return "";
     const asset = AssetInventory.find((item) => 
-      item.assetinventoryid === assetId || 
-      item.assetid === assetId || 
-      item.id === assetId
+      item.assetinventoryid === assetId || item.assetid === assetId || item.id === assetId
     );
-    
     if (!asset) return `Asset #${assetId}`;
-    
-    // Build a descriptive name from available fields
     const modelInfo = asset.manufacturermodel || "";
     const serialNumber = asset.serialnumber || "";
     const railwayCode = asset.railwaycode || "";
-    
     if (modelInfo && serialNumber) {
       return `${modelInfo} (${serialNumber})`;
     } else if (modelInfo) {
@@ -63,22 +80,21 @@ function Taskmaster() {
     }
   };
 
-  // Helper function to get severity name by id
   const getSeverityName = (severityId) => {
     if (!severityId) return "";
     const severity = Severity.find((item) => item.rid === severityId || item.id === severityId);
     return severity ? (severity.severitystring || severity.name || severity.severity_name || "") : severityId;
   };
 
-  // Filter data based on search input
   const filteredData = useMemo(() => {
+    // Handle both array response and object with results
+    const taskList = Array.isArray(data) ? data : (data?.results || []);
+    
     if (!search.trim()) {
-      return data?.results || [];
+      return taskList;
     }
-
     const searchLower = search.toLowerCase().trim();
-
-    return (data?.results || []).filter((item) => {
+    return taskList.filter((item) => {
       const machineName = (item.machinename || "").toLowerCase();
       const assetName = getAssetName(item.physicalasset).toLowerCase();
       const severityName = getSeverityName(item.severity).toLowerCase();
@@ -86,7 +102,6 @@ function Taskmaster() {
       const frequencyDays = (item.frequency_days || "").toString();
       const scheduleDate = (item.schedulelimitdate || "").toLowerCase();
       const taskMasterId = (item.taskmaster || "").toString();
-
       return (
         machineName.includes(searchLower) ||
         taskName.includes(searchLower) ||
@@ -97,7 +112,7 @@ function Taskmaster() {
         taskMasterId.includes(searchLower)
       );
     });
-  }, [data?.results, search, AssetInventory, Severity]);
+  }, [data, search, AssetInventory, Severity]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -109,21 +124,53 @@ function Taskmaster() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsGeneratingSchedule(true);
+    
     try {
       const submitData = {
         ...formData,
-        isBlockrequired: formData.isBlockrequired ? 1 : 0, // Convert boolean to integer
+        isBlockrequired: formData.isBlockrequired ? 1 : 0,
       };
 
       if (editingId) {
         await updateTask({ id: editingId, ...submitData }).unwrap();
         alert("✅ Updated Successfully");
+        setIsGeneratingSchedule(false);
       } else {
-        await createTask(submitData).unwrap();
-        alert("✅ Task Created");
+        // Create the task
+        const createdTask = await createTask(submitData).unwrap();
+        console.log("Created task:", createdTask);
+        
+        // Auto-generate schedule for the newly created task
+        try {
+          const scheduleResult = await generateSchedule({
+            taskmasterId: createdTask.taskmaster,
+            regenerate: false,
+          }).unwrap();
+          
+          console.log("Schedule generated:", scheduleResult);
+          
+          // Refetch tasks to get updated data with assignments
+          await refetch();
+          
+          // Show success message
+          alert(`✅ Task Created Successfully!\n📅 ${scheduleResult.assignments?.length || 0} scheduled tasks generated.`);
+          
+          // Navigate to assignment page after a short delay
+          setTimeout(() => {
+            navigate("/maitenance/taskassgn", {
+              state: { task: createdTask }
+            });
+          }, 500);
+          
+        } catch (scheduleError) {
+          console.error("Error generating schedule:", scheduleError);
+          alert("✅ Task Created, but there was an error generating the schedule.\nYou can manually regenerate it from the assignment page.");
+          setIsGeneratingSchedule(false);
+        }
       }
 
+      // Reset form
       setEditingId(null);
       setFormData({
         machinename: "",
@@ -134,9 +181,11 @@ function Taskmaster() {
         schedulelimitdate: "",
         isBlockrequired: false,
       });
+      
     } catch (error) {
       console.error("Error:", error);
       alert("❌ Error: " + (error?.data?.message || "Something went wrong"));
+      setIsGeneratingSchedule(false);
     }
   };
 
@@ -151,7 +200,6 @@ function Taskmaster() {
       schedulelimitdate: item.schedulelimitdate,
       isBlockrequired: item.isBlockrequired === 1 || item.isBlockrequired === true,
     });
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -180,6 +228,12 @@ function Taskmaster() {
     });
   };
 
+  const handleViewSchedule = (item) => {
+    navigate("/maitenance/taskassgn", {
+      state: { task: item }
+    });
+  };
+
   if (isLoading || isLoadingAssets || isLoadingSeverity) {
     return (
       <div className="w-full mt-30 bg-gray-100 flex justify-center items-center py-10">
@@ -194,6 +248,17 @@ function Taskmaster() {
         <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-5">
           🚨 Task Master
         </h1>
+
+        {/* Loading Overlay */}
+        {isGeneratingSchedule && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-xl text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-xl font-semibold">Creating task and generating schedule...</p>
+              <p className="text-sm text-gray-600 mt-2">Please wait...</p>
+            </div>
+          </div>
+        )}
 
         {/* SEARCH */}
         <div className="flex justify-between items-center mb-6">
@@ -225,11 +290,8 @@ function Taskmaster() {
             </div>
           )}
 
-          {/* Machine Name */}
           <div>
-            <label className="block mb-1 font-semibold">
-              Machine Name
-            </label>
+            <label className="block mb-1 font-semibold">Machine Name</label>
             <input
               type="text"
               name="machinename"
@@ -240,7 +302,6 @@ function Taskmaster() {
             />
           </div>
 
-          {/* 🔹 Physical Asset Dropdown */}
           <div>
             <label className="block mb-1 font-semibold">
               Physical Asset <span className="text-red-500">*</span>
@@ -258,7 +319,6 @@ function Taskmaster() {
                 const modelInfo = item.manufacturermodel || "";
                 const serialNumber = item.serialnumber || "";
                 const railwayCode = item.railwaycode || "";
-                
                 let displayName = "";
                 if (modelInfo && serialNumber) {
                   displayName = `${modelInfo} (${serialNumber})`;
@@ -269,7 +329,6 @@ function Taskmaster() {
                 } else {
                   displayName = item.asset_name || item.assetname || `Asset #${assetId}`;
                 }
-                
                 return (
                   <option key={assetId} value={assetId}>
                     {displayName}
@@ -279,7 +338,6 @@ function Taskmaster() {
             </select>
           </div>
 
-          {/* Task Name */}
           <div>
             <label className="block mb-1 font-semibold">
               Task Name <span className="text-red-500">*</span>
@@ -295,7 +353,6 @@ function Taskmaster() {
             />
           </div>
 
-          {/* Frequency Days */}
           <div>
             <label className="block mb-1 font-semibold">
               Frequency (Days) <span className="text-red-500">*</span>
@@ -306,13 +363,17 @@ function Taskmaster() {
               value={formData.frequency_days}
               onChange={handleChange}
               className="border p-2 w-full rounded focus:ring focus:ring-blue-200"
-              placeholder="e.g., 30"
+              placeholder="e.g., 20"
               min="1"
               required
             />
+            {formData.frequency_days && formData.schedulelimitdate && (
+              <p className="text-xs text-gray-600 mt-1">
+                📅 Will generate {calculateSchedule(parseInt(formData.frequency_days), formData.schedulelimitdate).length} scheduled tasks
+              </p>
+            )}
           </div>
 
-          {/* 🔹 Severity Dropdown */}
           <div>
             <label className="block mb-1 font-semibold">
               Severity <span className="text-red-500">*</span>
@@ -333,7 +394,6 @@ function Taskmaster() {
             </select>
           </div>
 
-          {/* Schedule Limit Date */}
           <div>
             <label className="block mb-1 font-semibold">
               Schedule Limit Date <span className="text-red-500">*</span>
@@ -348,7 +408,6 @@ function Taskmaster() {
             />
           </div>
 
-          {/* Is Block Required */}
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -363,13 +422,13 @@ function Taskmaster() {
             </label>
           </div>
 
-          {/* SUBMIT */}
           <div className="flex items-end gap-2 md:col-span-2">
             <button
               type="submit"
-              className="bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md hover:opacity-90 transition"
+              className="bg-[oklch(0.48_0.27_303.85)] text-white px-6 py-2 rounded shadow-md hover:opacity-90 transition disabled:opacity-50"
+              disabled={isGeneratingSchedule}
             >
-              {editingId ? "✅ Update Task" : "➕ Add Task"}
+              {isGeneratingSchedule ? "⏳ Processing..." : editingId ? "✅ Update Task" : "➕ Add Task & Generate Schedule"}
             </button>
             {editingId && (
               <button
@@ -395,11 +454,11 @@ function Taskmaster() {
                 <th className="px-4 py-2 text-left">Frequency (Days)</th>
                 <th className="px-4 py-2 text-left">Severity</th>
                 <th className="px-4 py-2 text-left">Schedule Date</th>
+                <th className="px-4 py-2 text-center">Assignments</th>
                 <th className="px-4 py-2 text-center">Block Required</th>
                 <th className="px-4 py-2 text-center">Actions</th>
               </tr>
             </thead>
-
             <tbody className="divide-y divide-gray-200">
               {filteredData.length > 0 ? (
                 filteredData.map((item) => (
@@ -412,17 +471,30 @@ function Taskmaster() {
                     <td className="px-4 py-2">{getSeverityName(item.severity)}</td>
                     <td className="px-4 py-2">{item.schedulelimitdate}</td>
                     <td className="px-4 py-2 text-center">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        item.assignment_count > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {item.assignment_count || 0} tasks
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-center">
                       {item.isBlockrequired === 1 || item.isBlockrequired === true ? (
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">✅ Yes</span>
                       ) : (
                         <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">❌ No</span>
                       )}
                     </td>
-
-                    <td className="px-4 py-2 text-center">
+                    <td className="px-4 py-2 text-center space-x-2">
+                      <button
+                        onClick={() => handleViewSchedule(item)}
+                        className="text-green-600 hover:underline"
+                        title="View Schedule"
+                      >
+                        📅 Schedule
+                      </button>
                       <button
                         onClick={() => handleEdit(item)}
-                        className="text-blue-600 hover:underline mr-3"
+                        className="text-blue-600 hover:underline"
                         title="Edit"
                       >
                         ✏️ Edit
@@ -439,7 +511,7 @@ function Taskmaster() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan="10" className="px-4 py-8 text-center text-gray-500">
                     {search ? "🔍 No tasks found matching your search." : "📝 No tasks available. Create one above!"}
                   </td>
                 </tr>
@@ -449,7 +521,7 @@ function Taskmaster() {
         </div>
 
         <p className="mt-4 text-gray-600 text-sm">
-          Showing {filteredData.length} of {data?.count || data?.results?.length || 0} tasks
+          Showing {filteredData.length} of {Array.isArray(data) ? data.length : (data?.count || data?.results?.length || 0)} tasks
           {search && ` (filtered by "${search}")`}
         </p>
       </div>

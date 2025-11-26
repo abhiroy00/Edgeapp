@@ -40,7 +40,7 @@ import Statusmaster from './features/status_master/Statusmaster'
 import Schedulecreation from './features/schedulecreation/Schedulecreation'
 import { Rose } from 'lucide-react'
 import Roster from './features/roster/Roster'
-import TaskAssign from './features/planner/taskassign/TaskAssign'
+import TaskAssign from './features/task_assign/TaskAssign'
 import TaskCloser from './features/task_closer/TaskCloser'
 
 export default function App() {
