@@ -226,7 +226,7 @@ function TaskAssign() {
             <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-2">
               📅 Task Assignment Schedule
             </h1>
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="bg-blue-50 p-5 rounded-xl border border-blue-200 shadow-md hover:shadow-lg transition-shadow duration-200 space-y-3">
               <p className="text-sm text-gray-700">
                 <strong>Task ID:</strong> {selectedTask.taskmaster} | 
                 <strong> Task Name:</strong> {selectedTask.taskname}

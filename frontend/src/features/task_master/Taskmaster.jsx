@@ -484,7 +484,7 @@ function Taskmaster() {
                         <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">❌ No</span>
                       )}
                     </td>
-                    <td className="px-4 py-2 text-center space-x-2">
+                    <td className="px-4 py-2 text-center inline-flex space-x-2">
                       <button
                         onClick={() => handleViewSchedule(item)}
                         className="text-green-600 hover:underline"
