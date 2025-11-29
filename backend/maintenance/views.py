@@ -19,6 +19,9 @@ def auto_generate_schedule(task_master):
     end_date = task_master.schedulelimitdate
     frequency = task_master.frequency_days
 
+    # NEW: Assign user from TaskMaster
+    assigned_user = getattr(task_master, "assigned_user", None)
+
     # Validate required fields
     if not end_date or not frequency or frequency <= 0:
         return 0, "Missing schedulelimitdate or frequency_days"
@@ -44,7 +47,8 @@ def auto_generate_schedule(task_master):
                     taskmaster=task_master,
                     task_number=i,
                     scheduled_date=scheduled_date,
-                    status='pending'
+                    status='pending',
+                    assigned_user=assigned_user  # <-- NEW
                 )
                 created_count += 1
                 
@@ -58,6 +62,7 @@ def auto_generate_schedule(task_master):
         return 0, str(e)
 
 
+
 class TaskMasterAPIView(APIView):
     """
     CRUD operations for TaskMaster with auto task generation
@@ -65,7 +70,6 @@ class TaskMasterAPIView(APIView):
     def get(self, request, pk=None):
         if pk:
             try:
-                # FIXED: Use taskmaster field as primary key
                 task = TaskMaster.objects.get(taskmaster=pk)
             except TaskMaster.DoesNotExist:
                 return Response({
@@ -75,18 +79,15 @@ class TaskMasterAPIView(APIView):
 
             serializer = TaskMasterSerializer(task)
             
-            # Also return assignment count
             assignment_count = TaskAssignment.objects.filter(taskmaster=task).count()
             response_data = serializer.data
             response_data['assignment_count'] = assignment_count
             
             return Response(response_data, status=status.HTTP_200_OK)
 
-        # List all
         queryset = TaskMaster.objects.all().order_by('-taskmaster')
         serializer = TaskMasterSerializer(queryset, many=True)
         
-        # Add assignment counts to each task
         data = serializer.data
         for item in data:
             task_id = item.get('taskmaster')
@@ -98,10 +99,8 @@ class TaskMasterAPIView(APIView):
     def post(self, request):
         serializer = TaskMasterSerializer(data=request.data)
         if serializer.is_valid():
-            # Save the TaskMaster
             task_master = serializer.save()
             
-            # Automatically generate schedule
             created_count, error = auto_generate_schedule(task_master)
             
             response_data = {
@@ -131,7 +130,6 @@ class TaskMasterAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            # FIXED: Use taskmaster field as primary key
             task = TaskMaster.objects.get(taskmaster=pk)
         except TaskMaster.DoesNotExist:
             return Response({
@@ -143,15 +141,12 @@ class TaskMasterAPIView(APIView):
         if serializer.is_valid():
             task_master = serializer.save()
             
-            # Check if schedule-related fields were updated
             schedule_fields = ['schedulelimitdate', 'frequency_days']
             if any(field in request.data for field in schedule_fields):
-                # Delete old assignments and regenerate
                 old_count = TaskAssignment.objects.filter(taskmaster=task_master).count()
                 TaskAssignment.objects.filter(taskmaster=task_master).delete()
                 print(f"[UPDATE] Deleted {old_count} old assignments")
                 
-                # Generate new schedule
                 created_count, error = auto_generate_schedule(task_master)
                 
                 response_data = {
@@ -186,7 +181,6 @@ class TaskMasterAPIView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            # FIXED: Use taskmaster field as primary key
             task = TaskMaster.objects.get(taskmaster=pk)
         except TaskMaster.DoesNotExist:
             return Response({
@@ -197,7 +191,6 @@ class TaskMasterAPIView(APIView):
         task_id = task.taskmaster
         assignment_count = TaskAssignment.objects.filter(taskmaster=task).count()
         
-        # Delete task (assignments will cascade delete)
         task.delete()
         
         return Response({
@@ -206,13 +199,13 @@ class TaskMasterAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+
 class GenerateScheduleAPIView(APIView):
     """
     Manual schedule generation/regeneration endpoint
     """
     def post(self, request, pk):
         try:
-            # FIXED: Use taskmaster field as primary key
             task_master = TaskMaster.objects.get(taskmaster=pk)
         except TaskMaster.DoesNotExist:
             return Response({
@@ -220,7 +213,6 @@ class GenerateScheduleAPIView(APIView):
                 "detail": f"TaskMaster with ID {pk} does not exist"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        # Check if assignments already exist
         existing_count = TaskAssignment.objects.filter(taskmaster=task_master).count()
         regenerate = request.data.get('regenerate', False)
         
@@ -231,12 +223,10 @@ class GenerateScheduleAPIView(APIView):
                 "existing_count": existing_count
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Delete existing assignments if regenerate is true
         if regenerate and existing_count > 0:
             TaskAssignment.objects.filter(taskmaster=task_master).delete()
             print(f"[REGENERATE] Deleted {existing_count} existing assignments for TaskMaster {pk}")
 
-        # Generate new schedule
         created_count, error = auto_generate_schedule(task_master)
         
         if error:
@@ -245,7 +235,6 @@ class GenerateScheduleAPIView(APIView):
                 "detail": error
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Get the created assignments
         assignments = TaskAssignment.objects.filter(taskmaster=task_master).order_by('task_number')
         serializer = TaskAssignmentSerializer(assignments, many=True)
         
@@ -258,12 +247,12 @@ class GenerateScheduleAPIView(APIView):
         }, status=status.HTTP_201_CREATED)
 
 
+
 class TaskAssignmentAPIView(APIView):
     """
     CRUD operations for TaskAssignment with filtering and pagination support
     """
     def get(self, request, pk=None):
-        # Single assignment retrieval
         if pk:
             try:
                 assignment = TaskAssignment.objects.select_related('taskmaster').get(taskassignmentid=pk)
@@ -275,20 +264,16 @@ class TaskAssignmentAPIView(APIView):
                     "detail": f"TaskAssignment with ID {pk} does not exist"
                 }, status=status.HTTP_404_NOT_FOUND)
 
-        # List with filters
         queryset = TaskAssignment.objects.select_related('taskmaster').all()
 
-        # Filter by taskmaster
         taskmaster_id = request.GET.get('taskmaster')
         if taskmaster_id:
             queryset = queryset.filter(taskmaster_id=taskmaster_id)
 
-        # Filter by status
         status_filter = request.GET.get('status')
         if status_filter:
             queryset = queryset.filter(status=status_filter)
 
-        # Filter by date range
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
         if start_date:
@@ -296,13 +281,10 @@ class TaskAssignmentAPIView(APIView):
         if end_date:
             queryset = queryset.filter(scheduled_date__lte=end_date)
 
-        # Order by scheduled date
         queryset = queryset.order_by('scheduled_date', 'task_number')
 
-        # Count total
         total_count = queryset.count()
 
-        # Pagination
         page = request.GET.get('page')
         page_size = request.GET.get('page_size', 100)
         
@@ -330,7 +312,6 @@ class TaskAssignmentAPIView(APIView):
                 serializer = TaskAssignmentSerializer(queryset, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            # No pagination - return all
             serializer = TaskAssignmentSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -400,6 +381,7 @@ class TaskAssignmentAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+
 class MarkCompleteAPIView(APIView):
     """Mark a task assignment as completed"""
     def post(self, request, pk):
@@ -424,6 +406,7 @@ class MarkCompleteAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+
 class MarkPendingAPIView(APIView):
     """Mark a task assignment as pending"""
     def post(self, request, pk):
@@ -445,6 +428,7 @@ class MarkPendingAPIView(APIView):
             "message": "Task marked as pending",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
+
 
 
 class BulkCompleteAPIView(APIView):
@@ -485,6 +469,7 @@ class BulkCompleteAPIView(APIView):
             "requested_count": len(assignment_ids),
             "not_found_count": len(assignment_ids) - found_count
         }, status=status.HTTP_200_OK)
+
 
 
 class TypeMasterAPIView(APIView):
@@ -570,6 +555,7 @@ class TypeMasterAPIView(APIView):
             "success": True,
             "message": f"TypeMaster {typemaster_id} deleted successfully"
         }, status=status.HTTP_200_OK)
+
 
 
 class StatusMasterAPIView(APIView):

@@ -9,6 +9,7 @@ import {
 import { useGetInventoriesQuery } from "../../features/asset/asset_invetory/assetinventryApi";
 import { useGetSeveritiesQuery } from "../../features/severity_master/SeveritymasterApi";
 import { useGenerateScheduleMutation } from "../task_assign/taskAssignmentApi";
+import {useGetUsersQuery} from '../user/users/userApi'
 
 function Taskmaster() {
   const [formData, setFormData] = useState({
@@ -28,6 +29,7 @@ function Taskmaster() {
   const { data, isLoading, refetch } = useGetTasksQuery();
   const { data: AssetInventoryData, isLoading: isLoadingAssets } = useGetInventoriesQuery({});
   const { data: SeverityData, isLoading: isLoadingSeverity } = useGetSeveritiesQuery({});
+  const {data:Users}=useGetUsersQuery()
 
   const AssetInventory = AssetInventoryData?.results || [];
   const Severity = SeverityData?.results || [];
@@ -289,6 +291,43 @@ function Taskmaster() {
               ✏️ Editing Task ID: {editingId}
             </div>
           )}
+
+           <div>
+            <label className="block mb-1 font-semibold">
+              User Name <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="physicalasset"
+              value={formData.physicalasset}
+              onChange={handleChange}
+              className="border p-2 w-full rounded focus:ring focus:ring-blue-200"
+              required
+            >
+              <option value="">-- Select User Name --</option>
+              {AssetInventory.map((item) => {
+                const assetId = item.assetinventoryid || item.assetid || item.id;
+                const modelInfo = item.manufacturermodel || "";
+                const serialNumber = item.serialnumber || "";
+                const railwayCode = item.railwaycode || "";
+                let displayName = "";
+                if (modelInfo && serialNumber) {
+                  displayName = `${modelInfo} (${serialNumber})`;
+                } else if (modelInfo) {
+                  displayName = modelInfo;
+                } else if (railwayCode) {
+                  displayName = railwayCode;
+                } else {
+                  displayName = item.asset_name || item.assetname || `Asset #${assetId}`;
+                }
+                return (
+                  <option key={assetId} value={assetId}>
+                    {displayName}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
 
           <div>
             <label className="block mb-1 font-semibold">Machine Name</label>

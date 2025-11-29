@@ -2,6 +2,7 @@ from rest_framework import serializers
 from maintenance.models import TaskAssignment,TypeMaster,StatusMaster,TaskMaster
 from asset.models import AssetInventory
 from junction.models import Severitymaster
+from users.models import UserMaster
 
 
 class TypeMasterSerializer(serializers.ModelSerializer):
@@ -25,6 +26,7 @@ class TaskMasterSerializer(serializers.ModelSerializer):
     assignments = TaskAssignmentSerializer(many=True, read_only=True)
     assignment_count = serializers.SerializerMethodField()
     completed_count = serializers.SerializerMethodField()
+    user = serializers.PrimaryKeyRelatedField(queryset=UserMaster.objects.all())
     
     class Meta:
         model = TaskMaster

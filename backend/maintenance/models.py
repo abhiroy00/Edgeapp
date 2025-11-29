@@ -26,6 +26,7 @@ class StatusMaster(models.Model):
 
 
 class TaskMaster(models.Model):
+    user=models.ForeignKey(UserMaster,on_delete=models.CASCADE,related_name="user")
     machinename = models.CharField(max_length=255, null=True, blank=True)
     taskmaster = models.AutoField(primary_key=True)
     physicalasset = models.ForeignKey(AssetInventory, on_delete=models.CASCADE, related_name='asset_inventory')
