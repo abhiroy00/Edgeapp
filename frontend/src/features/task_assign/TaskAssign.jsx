@@ -156,7 +156,7 @@ function TaskAssign() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    return assignments.filter(assignment => {
+    const filtered = assignments.filter(assignment => {
       const schedDate = new Date(assignment.scheduled_date);
       schedDate.setHours(0, 0, 0, 0);
       const isOverdue = schedDate < today && assignment.status !== "completed";
@@ -166,6 +166,9 @@ function TaskAssign() {
       if (filter === "overdue") return isOverdue;
       return true;
     });
+    
+    // Sort by task number in ascending order
+    return filtered.sort((a, b) => a.task_number - b.task_number);
   }, [assignments, filter]);
 
   const statistics = useMemo(() => {

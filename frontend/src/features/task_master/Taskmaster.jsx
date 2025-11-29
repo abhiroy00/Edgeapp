@@ -447,7 +447,7 @@ function Taskmaster() {
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
             <thead className="bg-blue-100">
               <tr>
-                <th className="px-4 py-2 text-left">ID</th>
+               
                 <th className="px-4 py-2 text-left">Machine Name</th>
                 <th className="px-4 py-2 text-left">Physical Asset</th>
                 <th className="px-4 py-2 text-left">Task Name</th>
@@ -463,7 +463,7 @@ function Taskmaster() {
               {filteredData.length > 0 ? (
                 filteredData.map((item) => (
                   <tr key={item.taskmaster} className="hover:bg-gray-50 transition">
-                    <td className="px-4 py-2">{item.taskmaster}</td>
+                
                     <td className="px-4 py-2 font-medium">{item.machinename || "-"}</td>
                     <td className="px-4 py-2">{getAssetName(item.physicalasset)}</td>
                     <td className="px-4 py-2">{item.taskname}</td>
