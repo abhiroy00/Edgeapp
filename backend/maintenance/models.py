@@ -81,3 +81,26 @@ class TaskAssignment(models.Model):
             self.status = 'pending'
         
         super().save(*args, **kwargs)
+
+class TaskCloser(models.Model):
+    scheduled_date = models.DateField()
+    machinename = models.CharField(max_length=255, null=True, blank=True)
+    task =models.ForeignKey(TaskMaster, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserMaster, on_delete=models.CASCADE, null=True, blank=True)
+    isBlockrequired = models.IntegerField()
+    
+    def  __str__(self):
+        return f"{self.scheduled_date}"
+    
+class MaintenanceFeedback(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('overdue', 'Overdue'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    startdate = models.DateField()
+    time=models.TimeField()
+
+    def __str__(self):
+        return f"{self.startdate} - {self.time}"

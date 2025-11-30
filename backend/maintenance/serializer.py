@@ -3,6 +3,7 @@ from maintenance.models import TaskAssignment,TypeMaster,StatusMaster,TaskMaster
 from asset.models import AssetInventory
 from junction.models import Severitymaster
 from users.models import UserMaster
+from maintenance.models import TaskCloser, MaintenanceFeedback
 
 
 class TypeMasterSerializer(serializers.ModelSerializer):
@@ -41,3 +42,13 @@ class TaskMasterSerializer(serializers.ModelSerializer):
     
     def get_completed_count(self, obj):
         return obj.assignments.filter(status='completed').count()
+    
+class TaskCloserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskCloser
+        fields = '__all__'
+
+class MaintenanceFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskCloser
+        fields = '__all__'
