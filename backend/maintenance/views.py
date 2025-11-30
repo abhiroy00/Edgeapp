@@ -19,9 +19,6 @@ def auto_generate_schedule(task_master):
     end_date = task_master.schedulelimitdate
     frequency = task_master.frequency_days
 
-    # NEW: Assign user from TaskMaster
-    assigned_user = getattr(task_master, "assigned_user", None)
-
     # Validate required fields
     if not end_date or not frequency or frequency <= 0:
         return 0, "Missing schedulelimitdate or frequency_days"
@@ -47,8 +44,7 @@ def auto_generate_schedule(task_master):
                     taskmaster=task_master,
                     task_number=i,
                     scheduled_date=scheduled_date,
-                    status='pending',
-                    assigned_user=assigned_user  # <-- NEW
+                    status='pending'
                 )
                 created_count += 1
                 
@@ -60,9 +56,6 @@ def auto_generate_schedule(task_master):
         TaskAssignment.objects.filter(taskmaster=task_master).delete()
         print(f"[ERROR] Failed to auto-generate: {str(e)}")
         return 0, str(e)
-
-
-
 class TaskMasterAPIView(APIView):
     """
     CRUD operations for TaskMaster with auto task generation

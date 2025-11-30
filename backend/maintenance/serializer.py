@@ -26,7 +26,11 @@ class TaskMasterSerializer(serializers.ModelSerializer):
     assignments = TaskAssignmentSerializer(many=True, read_only=True)
     assignment_count = serializers.SerializerMethodField()
     completed_count = serializers.SerializerMethodField()
-    user = serializers.PrimaryKeyRelatedField(queryset=UserMaster.objects.all())
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=UserMaster.objects.all(),
+        required=False,  # Add this
+        allow_null=True  # Add this
+    )
     
     class Meta:
         model = TaskMaster

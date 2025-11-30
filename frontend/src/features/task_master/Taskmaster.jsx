@@ -9,7 +9,7 @@ import {
 import { useGetInventoriesQuery } from "../../features/asset/asset_invetory/assetinventryApi";
 import { useGetSeveritiesQuery } from "../../features/severity_master/SeveritymasterApi";
 import { useGenerateScheduleMutation } from "../task_assign/taskAssignmentApi";
-import {useGetUsersQuery} from '../user/users/userApi'
+import { useGetUsersQuery } from '../user/users/userApi'
 
 function Taskmaster() {
   const [formData, setFormData] = useState({
@@ -20,6 +20,7 @@ function Taskmaster() {
     severity: "",
     schedulelimitdate: "",
     isBlockrequired: false,
+   
   });
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -29,10 +30,11 @@ function Taskmaster() {
   const { data, isLoading, refetch } = useGetTasksQuery();
   const { data: AssetInventoryData, isLoading: isLoadingAssets } = useGetInventoriesQuery({});
   const { data: SeverityData, isLoading: isLoadingSeverity } = useGetSeveritiesQuery({});
-  const {data:Users}=useGetUsersQuery()
+  const { data: Users } = useGetUsersQuery()
 
   const AssetInventory = AssetInventoryData?.results || [];
   const Severity = SeverityData?.results || [];
+  const UserList = Users?.results || [];
 
   const [createTask] = useCreateTaskMutation();
   const [updateTask] = useUpdateTaskMutation();
@@ -88,8 +90,13 @@ function Taskmaster() {
     return severity ? (severity.severitystring || severity.name || severity.severity_name || "") : severityId;
   };
 
+  const getUserName = (userId) => {
+    if (!userId) return "";
+    const user = UserList.find((item) => item.id === userId || item.userid === userId);
+    return user ? (user.username || user.name || user.fullname || `User #${userId}`) : `User #${userId}`;
+  };
+
   const filteredData = useMemo(() => {
-    // Handle both array response and object with results
     const taskList = Array.isArray(data) ? data : (data?.results || []);
     
     if (!search.trim()) {
@@ -101,6 +108,7 @@ function Taskmaster() {
       const assetName = getAssetName(item.physicalasset).toLowerCase();
       const severityName = getSeverityName(item.severity).toLowerCase();
       const taskName = (item.taskname || "").toLowerCase();
+      const userName = getUserName(item.username).toLowerCase();
       const frequencyDays = (item.frequency_days || "").toString();
       const scheduleDate = (item.schedulelimitdate || "").toLowerCase();
       const taskMasterId = (item.taskmaster || "").toString();
@@ -109,12 +117,13 @@ function Taskmaster() {
         taskName.includes(searchLower) ||
         assetName.includes(searchLower) ||
         severityName.includes(searchLower) ||
+        userName.includes(searchLower) ||
         frequencyDays.includes(searchLower) ||
         scheduleDate.includes(searchLower) ||
         taskMasterId.includes(searchLower)
       );
     });
-  }, [data, search, AssetInventory, Severity]);
+  }, [data, search, AssetInventory, Severity, UserList]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -139,11 +148,9 @@ function Taskmaster() {
         alert("✅ Updated Successfully");
         setIsGeneratingSchedule(false);
       } else {
-        // Create the task
         const createdTask = await createTask(submitData).unwrap();
         console.log("Created task:", createdTask);
         
-        // Auto-generate schedule for the newly created task
         try {
           const scheduleResult = await generateSchedule({
             taskmasterId: createdTask.taskmaster,
@@ -151,14 +158,10 @@ function Taskmaster() {
           }).unwrap();
           
           console.log("Schedule generated:", scheduleResult);
-          
-          // Refetch tasks to get updated data with assignments
           await refetch();
           
-          // Show success message
           alert(`✅ Task Created Successfully!\n📅 ${scheduleResult.assignments?.length || 0} scheduled tasks generated.`);
           
-          // Navigate to assignment page after a short delay
           setTimeout(() => {
             navigate("/maitenance/taskassgn", {
               state: { task: createdTask }
@@ -172,7 +175,6 @@ function Taskmaster() {
         }
       }
 
-      // Reset form
       setEditingId(null);
       setFormData({
         machinename: "",
@@ -182,6 +184,7 @@ function Taskmaster() {
         severity: "",
         schedulelimitdate: "",
         isBlockrequired: false,
+       
       });
       
     } catch (error) {
@@ -201,6 +204,7 @@ function Taskmaster() {
       severity: item.severity,
       schedulelimitdate: item.schedulelimitdate,
       isBlockrequired: item.isBlockrequired === 1 || item.isBlockrequired === true,
+      
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -227,6 +231,7 @@ function Taskmaster() {
       severity: "",
       schedulelimitdate: "",
       isBlockrequired: false,
+     
     });
   };
 
@@ -251,7 +256,6 @@ function Taskmaster() {
           🚨 Task Master
         </h1>
 
-        {/* Loading Overlay */}
         {isGeneratingSchedule && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-8 rounded-lg shadow-xl text-center">
@@ -262,11 +266,10 @@ function Taskmaster() {
           </div>
         )}
 
-        {/* SEARCH */}
         <div className="flex justify-between items-center mb-6">
           <input
             type="text"
-            placeholder="🔍 Search by machine name, task name, asset, severity..."
+            placeholder="🔍 Search by machine name, task name, asset, severity, user..."
             className="border p-2 rounded-md w-full focus:ring focus:ring-blue-200"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -281,7 +284,6 @@ function Taskmaster() {
           )}
         </div>
 
-        {/* FORM */}
         <form
           onSubmit={handleSubmit}
           className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-6 rounded-lg shadow-inner"
@@ -291,42 +293,6 @@ function Taskmaster() {
               ✏️ Editing Task ID: {editingId}
             </div>
           )}
-
-           <div>
-            <label className="block mb-1 font-semibold">
-              User Name <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="physicalasset"
-              value={formData.physicalasset}
-              onChange={handleChange}
-              className="border p-2 w-full rounded focus:ring focus:ring-blue-200"
-              required
-            >
-              <option value="">-- Select User Name --</option>
-              {AssetInventory.map((item) => {
-                const assetId = item.assetinventoryid || item.assetid || item.id;
-                const modelInfo = item.manufacturermodel || "";
-                const serialNumber = item.serialnumber || "";
-                const railwayCode = item.railwaycode || "";
-                let displayName = "";
-                if (modelInfo && serialNumber) {
-                  displayName = `${modelInfo} (${serialNumber})`;
-                } else if (modelInfo) {
-                  displayName = modelInfo;
-                } else if (railwayCode) {
-                  displayName = railwayCode;
-                } else {
-                  displayName = item.asset_name || item.assetname || `Asset #${assetId}`;
-                }
-                return (
-                  <option key={assetId} value={assetId}>
-                    {displayName}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
 
 
           <div>
@@ -481,12 +447,11 @@ function Taskmaster() {
           </div>
         </form>
 
-        {/* TABLE */}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300 rounded-lg text-sm shadow-md">
             <thead className="bg-blue-100">
               <tr>
-               
+              
                 <th className="px-4 py-2 text-left">Machine Name</th>
                 <th className="px-4 py-2 text-left">Physical Asset</th>
                 <th className="px-4 py-2 text-left">Task Name</th>
@@ -502,7 +467,7 @@ function Taskmaster() {
               {filteredData.length > 0 ? (
                 filteredData.map((item) => (
                   <tr key={item.taskmaster} className="hover:bg-gray-50 transition">
-                
+                    
                     <td className="px-4 py-2 font-medium">{item.machinename || "-"}</td>
                     <td className="px-4 py-2">{getAssetName(item.physicalasset)}</td>
                     <td className="px-4 py-2">{item.taskname}</td>
