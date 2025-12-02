@@ -236,7 +236,7 @@ function Taskmaster() {
   };
 
   const handleViewSchedule = (item) => {
-    navigate("/maitenance/taskassgn", {
+    navigate("/maitenance/tasklist", {
       state: { task: item }
     });
   };

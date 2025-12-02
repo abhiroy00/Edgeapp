@@ -20,6 +20,7 @@ import { typemasterApi } from "../features/type_master/typemasterApi";
 import { statusmasterApi } from "../features/status_master/statusmasterApi";
 import { schedulecreationApi } from "../features/schedulecreation/schedulecreationApi";
 import { taskAssignmentApi } from "../features/task_assign/taskAssignmentApi";
+import { taskListApi } from "../features/task_list/taskListApi";
 
 
 const store = configureStore({
@@ -44,7 +45,8 @@ const store = configureStore({
     [typemasterApi.reducerPath]:typemasterApi.reducer,
     [statusmasterApi.reducerPath]:statusmasterApi.reducer,
     [schedulecreationApi.reducerPath]:schedulecreationApi.reducer,
-    [taskAssignmentApi.reducerPath]:taskAssignmentApi.reducer
+    [taskAssignmentApi.reducerPath]:taskAssignmentApi.reducer,
+    [taskListApi.reducerPath]:taskListApi.reducer
 
    
 
@@ -72,6 +74,7 @@ const store = configureStore({
       .concat(statusmasterApi.middleware)
       .concat(schedulecreationApi.middleware)
       .concat(taskAssignmentApi.middleware)
+      .concat(taskListApi.middleware)
       ,
 
 

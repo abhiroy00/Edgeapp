@@ -42,6 +42,7 @@ import { Rose } from 'lucide-react'
 import Roster from './features/roster/Roster'
 import TaskAssign from './features/task_assign/TaskAssign'
 import TaskCloser from './features/task_closer/TaskCloser'
+import TaskList from './features/task_list/TaskList'
 
 export default function App() {
   const router = createBrowserRouter([
@@ -224,6 +225,10 @@ export default function App() {
         {
           path:"/maitenance/taskclose",
           element:<TaskCloser></TaskCloser>
+        },
+        {
+          path:"/maitenance/tasklist",
+          element:<TaskList></TaskList>
         }
 
 

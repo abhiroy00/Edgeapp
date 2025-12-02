@@ -1,102 +1,74 @@
-// taskAssignmentApi.js
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const taskAssignmentApi = createApi({
   reducerPath: "taskAssignmentApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://127.0.0.1:8000/api",
+    baseUrl: "http://127.0.0.1:8000/api/",
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers.set("Authorization", `Token ${token}`);
+      }
+      return headers;
+    },
   }),
-  tagTypes: ["TaskAssignment"],
+  tagTypes: ["Users", "TaskAssignments"],
   endpoints: (builder) => ({
-    // Get all assignments for a specific task master
-    getTaskAssignments: builder.query({
-      query: (args = {}) => {
-        const { taskmaster, status, page = 1 } = args;
-        let url = `/taskassignment/?page=${page}`;
-        if (taskmaster) url += `&taskmaster=${taskmaster}`;
-        if (status) url += `&status=${status}`;
-        return url;
-      },
-      providesTags: ["TaskAssignment"],
+    // Get all users
+    getUsers: builder.query({
+      query: () => "user",
+      providesTags: ["Users"],
     }),
 
     // Generate schedule for a task master
     generateSchedule: builder.mutation({
       query: ({ taskmasterId, regenerate = false }) => ({
-        url: `/taskmaster/${taskmasterId}/generate_schedule/`,
+        url: `task-assignments/generate-schedule/`,
         method: "POST",
-        body: { regenerate },
+        body: {
+          taskmaster: taskmasterId,
+          regenerate: regenerate,
+        },
       }),
-      invalidatesTags: ["TaskAssignment"],
+      invalidatesTags: ["TaskAssignments"],
     }),
 
-    // Mark single task as complete
-    markTaskComplete: builder.mutation({
-      query: ({ assignmentId, notes = "" }) => ({
-        url: `/taskassignment/${assignmentId}/mark_complete/`,
+    // Assign tasks to users (bulk assignment)
+    assignTasks: builder.mutation({
+      query: (data) => ({
+        url: "task-assignments/bulk-assign/",
         method: "POST",
-        body: { notes },
+        body: data,
       }),
-      invalidatesTags: ["TaskAssignment"],
+      invalidatesTags: ["TaskAssignments"],
     }),
 
-    // Mark single task as pending (undo)
-    markTaskPending: builder.mutation({
-      query: (assignmentId) => ({
-        url: `/taskassignment/${assignmentId}/mark_pending/`,
-        method: "POST",
+    // Assign single task to user
+    assignSingleTask: builder.mutation({
+      query: ({ taskassignmentid, assigned_user }) => ({
+        url: `task-assignments/${taskassignmentid}/`,
+        method: "PATCH",
+        body: { assigned_user },
       }),
-      invalidatesTags: ["TaskAssignment"],
+      invalidatesTags: ["TaskAssignments"],
     }),
 
-    // Bulk mark tasks as complete
-    bulkMarkComplete: builder.mutation({
-      query: (assignmentIds) => ({
-        url: `/taskassignment/bulk_complete/`,
-        method: "POST",
-        body: { assignment_ids: assignmentIds },
+    // Update task assignment
+    updateTaskAssignment: builder.mutation({
+      query: ({ taskassignmentid, ...data }) => ({
+        url: `task-assignments/${taskassignmentid}/`,
+        method: "PATCH",
+        body: data,
       }),
-      invalidatesTags: ["TaskAssignment"],
-    }),
-
-    // Create assignment manually
-    createAssignment: builder.mutation({
-      query: (body) => ({
-        url: "/taskassignment/",
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: ["TaskAssignment"],
-    }),
-
-    // Update assignment
-    updateAssignment: builder.mutation({
-      query: ({ id, ...body }) => ({
-        url: `/taskassignment/${id}/`,
-        method: "PUT",
-        body,
-      }),
-      invalidatesTags: ["TaskAssignment"],
-    }),
-
-    // Delete assignment
-    deleteAssignment: builder.mutation({
-      query: (id) => ({
-        url: `/taskassignment/${id}/`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["TaskAssignment"],
+      invalidatesTags: ["TaskAssignments"],
     }),
   }),
 });
 
 export const {
-  useGetTaskAssignmentsQuery,
+  useGetUsersQuery,
   useGenerateScheduleMutation,
-  useMarkTaskCompleteMutation,
-  useMarkTaskPendingMutation,
-  useBulkMarkCompleteMutation,
-  useCreateAssignmentMutation,
-  useUpdateAssignmentMutation,
-  useDeleteAssignmentMutation,
+  useAssignTasksMutation,
+  useAssignSingleTaskMutation,
+  useUpdateTaskAssignmentMutation,
 } = taskAssignmentApi;
