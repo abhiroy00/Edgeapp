@@ -67,7 +67,7 @@ function TaskAssign() {
     }));
   };
 
-  // Save all assignments
+  // Save all assignments and navigate to TaskCloser
   const handleSaveAssignments = async () => {
     const assignmentsToSave = filteredTasks
       .filter(task => assignments[task.taskassignmentid])
@@ -85,11 +85,17 @@ function TaskAssign() {
     try {
       await assignTasks({ assignments: assignmentsToSave }).unwrap();
       alert(`✅ Successfully assigned ${assignmentsToSave.length} task(s)`);
-      setAssignments({});
+      
+      // Navigate to TaskCloser page with the selected date
+      navigate("/maitenance/taskclose", {
+        state: { 
+          selectedDate: selectedDate,
+          task: selectedTask
+        }
+      });
     } catch (error) {
       console.error("Error assigning tasks:", error);
       alert("❌ Error assigning tasks. Please try again.");
-    } finally {
       setIsSaving(false);
     }
   };
@@ -184,11 +190,11 @@ function TaskAssign() {
               <select
                 onChange={(e) => handleAssignAllToUser(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                defaultValue=""
+                value=""
               >
                 <option value="">-- Select User --</option>
                 {users.map((user) => (
-                  <option key={user.id} value={user.id}>
+                  <option key={user.id || user.userid} value={user.id}>
                     {user.username || user.name || `User #${user.id}`}
                   </option>
                 ))}
@@ -280,7 +286,7 @@ function TaskAssign() {
               disabled={isSaving || Object.keys(assignments).length === 0}
               className="bg-blue-600 text-white px-6 py-2.5 rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {isSaving ? "Saving..." : `💾 Save Assignments (${Object.keys(assignments).length})`}
+              {isSaving ? "Saving..." : `💾 Save & Continue (${Object.keys(assignments).length})`}
             </button>
           </div>
         )}

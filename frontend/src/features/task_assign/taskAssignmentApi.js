@@ -16,7 +16,7 @@ export const taskAssignmentApi = createApi({
   endpoints: (builder) => ({
     // Get all users
     getUsers: builder.query({
-      query: () => "user",
+      query: () => "users",
       providesTags: ["Users"],
     }),
 
@@ -36,7 +36,7 @@ export const taskAssignmentApi = createApi({
     // Assign tasks to users (bulk assignment)
     assignTasks: builder.mutation({
       query: (data) => ({
-        url: "task-assignments/bulk-assign/",
+        url: "taskassignment/bulk_assign/",
         method: "POST",
         body: data,
       }),

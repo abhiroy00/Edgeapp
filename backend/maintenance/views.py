@@ -9,6 +9,63 @@ from .serializer import TaskMasterSerializer, TypeMasterSerializer, StatusMaster
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from datetime import datetime, timedelta
+from django.db import transaction
+
+
+class BulkAssignAPIView(APIView):
+    """
+    Bulk assign tasks to users
+    POST /api/task-assignments/bulk-assign/
+    """
+    def post(self, request):
+        assignments = request.data.get('assignments', [])
+        
+        if not assignments:
+            return Response({
+                "error": "No assignments provided",
+                "detail": "Please provide 'assignments' array"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_count = 0
+        errors = []
+        
+        try:
+            with transaction.atomic():
+                for assignment_data in assignments:
+                    task_id = assignment_data.get('taskassignmentid')
+                    user_id = assignment_data.get('assigned_user')
+                    
+                    if not task_id or not user_id:
+                        errors.append({"error": "Missing data", "data": assignment_data})
+                        continue
+                    
+                    try:
+                        task_assignment = TaskAssignment.objects.get(taskassignmentid=task_id)
+                        task_assignment.assigned_user_id = user_id
+                        task_assignment.save()
+                        updated_count += 1
+                        
+                    except TaskAssignment.DoesNotExist:
+                        errors.append({"error": "Not found", "taskassignmentid": task_id})
+                    except Exception as e:
+                        errors.append({"error": str(e), "taskassignmentid": task_id})
+                
+                if updated_count == 0 and errors:
+                    raise Exception("All assignments failed")
+        
+        except Exception as e:
+            return Response({
+                "error": "Bulk assignment failed",
+                "detail": str(e),
+                "errors": errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({
+            "success": True,
+            "message": f"Successfully assigned {updated_count} task(s)",
+            "updated_count": updated_count,
+            "errors": errors if errors else None
+        }, status=status.HTTP_200_OK)
 
 
 def auto_generate_schedule(task_master):

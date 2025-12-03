@@ -7,7 +7,8 @@ from .views import (
     MarkPendingAPIView,
     BulkCompleteAPIView,
     TypeMasterAPIView,
-    StatusMasterAPIView
+    StatusMasterAPIView,
+    BulkAssignAPIView
 )
 
 urlpatterns = [
@@ -26,6 +27,10 @@ urlpatterns = [
     path('taskassignment/<int:pk>/mark_complete/', MarkCompleteAPIView.as_view()),
     path('taskassignment/<int:pk>/mark_pending/', MarkPendingAPIView.as_view()),
     path('taskassignment/bulk_complete/', BulkCompleteAPIView.as_view()),
+    path('taskassignment/bulk_complete/', BulkCompleteAPIView.as_view()),
+    path('taskassignment/bulk_assign/', BulkAssignAPIView.as_view()),
+
+
 
     # Type & Status
     path('typemaster/', TypeMasterAPIView.as_view()),
