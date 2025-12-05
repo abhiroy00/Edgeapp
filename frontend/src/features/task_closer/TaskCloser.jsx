@@ -2,42 +2,74 @@ import React, { useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useGetInventoriesQuery } from "../../features/asset/asset_invetory/assetinventryApi";
 import { useGetUsersQuery } from "../user/users/userApi";
-import { useGetTaskListQuery } from "../task_list/taskListApi";
-import { useUpdateTaskAssignmentMutation } from "../task_assign/taskAssignmentApi";
+import { useGetTaskListQuery, useMarkTaskCompleteMutation } from "../task_list/taskListApi"; 
+import { 
+  useCreateTaskCompletionMutation,
+  useGetCompletedTasksQuery 
+} from "./taskCompletionApi";
 
 function TaskCloser() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const selectedDateFromState = location.state?.selectedDate;
   const selectedTaskFromState = location.state?.task;
-  
-  const today = new Date().toISOString().split('T')[0];
+
+  const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(selectedDateFromState || today);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("tasks");
 
+  // Modal
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [selectedTaskForCompletion, setSelectedTaskForCompletion] = useState(null);
+
+  const [maintenanceData, setMaintenanceData] = useState({
+    startTime: "",
+    startPeriod: "AM",
+    stopTime: "",
+    stopPeriod: "AM",
+    isSuccessful: true,
+    feedback: "",
+  });
+
+  // Queries
   const { data: AssetInventoryData } = useGetInventoriesQuery({});
   const { data: usersData } = useGetUsersQuery();
-  const { 
-    data: taskListData, 
-    isLoading,
-    refetch 
-  } = useGetTaskListQuery(
+
+  const { data: taskListData, isLoading, refetch: refetchTaskList } = useGetTaskListQuery(
     { taskmaster: selectedTaskFromState?.taskmaster },
     { skip: !selectedTaskFromState }
   );
 
-  const [updateTaskAssignment] = useUpdateTaskAssignmentMutation();
+  const {
+    data: completedTasksData,
+    isLoading: completedLoading,
+    refetch: refetchCompleted,
+  } = useGetCompletedTasksQuery(
+    {
+      taskmaster: selectedTaskFromState?.taskmaster,
+      completed_date: selectedDate,
+    },
+    { skip: !selectedTaskFromState }
+  );
 
+  // Mutations
+  const [createTaskCompletion] = useCreateTaskCompletionMutation();
+  const [markTaskComplete] = useMarkTaskCompleteMutation(); // NEW
+
+  // Data extraction
   const AssetInventory = AssetInventoryData?.results || [];
   const users = usersData?.results || usersData || [];
   const allTasks = taskListData?.results || taskListData?.assignments || [];
+  const completedTasks = completedTasksData?.results || [];
 
   const getAssetName = (assetId) => {
-    const asset = AssetInventory.find((item) =>
-      item.assetinventoryid === assetId || 
-      item.assetid === assetId || 
-      item.id === assetId
+    const asset = AssetInventory.find(
+      (item) =>
+        item.assetinventoryid === assetId ||
+        item.assetid === assetId ||
+        item.id === assetId
     );
     if (!asset) return `Asset #${assetId}`;
     return (
@@ -52,86 +84,165 @@ function TaskCloser() {
 
   const getUserName = (userId) => {
     if (!userId) return "Not assigned";
-    const user = users.find(u => u.id === userId);
-    return user ? (user.username || user.name || `User #${userId}`) : `User #${userId}`;
+    const user = users.find((u) => u.id === userId);
+    return user ? user.username || user.name : `User #${userId}`;
   };
 
-  // Filter tasks by selected date and status
+  // Convert to 24H
+  const convertTo24Hour = (time, period) => {
+    if (!time) return "";
+    let [hours, minutes] = time.split(":");
+    hours = parseInt(hours);
+
+    if (period === "PM" && hours !== 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes}`;
+  };
+
+  // Duration
+  const calculateDuration = (startTime, startPeriod, stopTime, stopPeriod) => {
+    if (!startTime || !stopTime) return "";
+
+    const start24 = convertTo24Hour(startTime, startPeriod);
+    const stop24 = convertTo24Hour(stopTime, stopPeriod);
+
+    const startDate = new Date(`2000-01-01T${start24}`);
+    const stopDate = new Date(`2000-01-01T${stop24}`);
+
+    let diff = (stopDate - startDate) / (1000 * 60);
+    if (diff < 0) diff += 1440;
+
+    const hrs = Math.floor(diff / 60);
+    const mins = diff % 60;
+
+    return `${hrs}h ${mins}m`;
+  };
+
+  // Filter tasks
   const filteredTasks = useMemo(() => {
     let filtered = allTasks.filter((task) => {
-      const taskDate = new Date(task.scheduled_date).toISOString().split('T')[0];
+      const taskDate = new Date(task.scheduled_date).toISOString().split("T")[0];
       return taskDate === selectedDate;
     });
 
-    // Filter by status
     if (statusFilter === "completed") {
-      filtered = filtered.filter(task => task.status === "completed");
+      filtered = filtered.filter((t) => t.status === "completed");
     } else if (statusFilter === "pending") {
-      filtered = filtered.filter(task => task.status === "pending" || !task.status);
+      filtered = filtered.filter((t) => t.status !== "completed");
     }
 
     return filtered.sort((a, b) => a.task_number - b.task_number);
   }, [allTasks, selectedDate, statusFilter]);
 
-  // Statistics
+  // Stats
   const statistics = useMemo(() => {
     const tasksForDate = allTasks.filter((task) => {
-      const taskDate = new Date(task.scheduled_date).toISOString().split('T')[0];
+      const taskDate = new Date(task.scheduled_date).toISOString().split("T")[0];
       return taskDate === selectedDate;
     });
-    
-    const total = tasksForDate.length;
-    const completed = tasksForDate.filter(t => t.status === "completed").length;
-    const pending = tasksForDate.filter(t => t.status === "pending" || !t.status).length;
-    
-    return { total, completed, pending };
+
+    return {
+      total: tasksForDate.length,
+      completed: tasksForDate.filter((t) => t.status === "completed").length,
+      pending: tasksForDate.filter((t) => t.status !== "completed").length,
+    };
   }, [allTasks, selectedDate]);
 
-  // Handle mark as completed
-  const handleMarkCompleted = async (taskAssignmentId) => {
-    if (!window.confirm("Mark this task as completed?")) return;
-    
-    try {
-      await updateTaskAssignment({
-        taskassignmentid: taskAssignmentId,
-        status: "completed",
-        completed_date: new Date().toISOString().split('T')[0]
-      }).unwrap();
-      
-      alert("✅ Task marked as completed");
-      refetch();
-    } catch (error) {
-      console.error("Error updating task:", error);
-      alert("❌ Error updating task status");
-    }
+  // Open Modal
+  const openCompletionModal = (task) => {
+    setSelectedTaskForCompletion(task);
+    setMaintenanceData({
+      startTime: "",
+      startPeriod: "AM",
+      stopTime: "",
+      stopPeriod: "AM",
+      isSuccessful: true,
+      feedback: "",
+    });
+    setShowCompletionModal(true);
   };
 
-  // Handle mark as pending
-  const handleMarkPending = async (taskAssignmentId) => {
-    if (!window.confirm("Mark this task as pending?")) return;
-    
-    try {
-      await updateTaskAssignment({
-        taskassignmentid: taskAssignmentId,
-        status: "pending",
-        completed_date: null
-      }).unwrap();
-      
-      alert("✅ Task marked as pending");
-      refetch();
-    } catch (error) {
-      console.error("Error updating task:", error);
-      alert("❌ Error updating task status");
-    }
+  const closeCompletionModal = () => {
+    setShowCompletionModal(false);
+    setSelectedTaskForCompletion(null);
   };
+
+  // Submit Completion
+  const handleSubmitCompletion = async () => {
+  if (!maintenanceData.startTime || !maintenanceData.stopTime) {
+    alert("⚠️ Enter start and stop times");
+    return;
+  }
+
+  if (!maintenanceData.feedback.trim()) {
+    alert("⚠️ Feedback required");
+    return;
+  }
+
+  const start24 = convertTo24Hour(
+    maintenanceData.startTime,
+    maintenanceData.startPeriod
+  );
+
+  const stop24 = convertTo24Hour(
+    maintenanceData.stopTime,
+    maintenanceData.stopPeriod
+  );
+
+  try {
+    /* Step 1: Create task completion entry */
+    await createTaskCompletion({
+      task_assignment_id: selectedTaskForCompletion.taskassignmentid,
+      task_number: selectedTaskForCompletion.task_number,
+      taskmaster: selectedTaskFromState.taskmaster,
+      taskname: selectedTaskFromState.taskname,
+      asset_id: selectedTaskFromState.physicalasset,
+      assigned_user: selectedTaskForCompletion.assigned_to,
+      scheduled_date: selectedTaskForCompletion.scheduled_date,
+      completed_date: new Date().toISOString().split("T")[0],
+      maintenance_start_time: start24,
+      maintenance_stop_time: stop24,
+      start_time_display: `${maintenanceData.startTime} ${maintenanceData.startPeriod}`,
+      stop_time_display: `${maintenanceData.stopTime} ${maintenanceData.stopPeriod}`,
+      duration: calculateDuration(
+        maintenanceData.startTime,
+        maintenanceData.startPeriod,
+        maintenanceData.stopTime,
+        maintenanceData.stopPeriod
+      ),
+      is_successful: maintenanceData.isSuccessful,
+      feedback: maintenanceData.feedback,
+    }).unwrap();
+
+    /* Step 2: Mark assignment as completed */
+    await markTaskComplete({
+      assignmentId: selectedTaskForCompletion.taskassignmentid,
+      notes: maintenanceData.feedback,
+    }).unwrap();
+
+    /* Step 3: Refresh tables */
+    await refetchTaskList();
+    await refetchCompleted();
+
+    alert("✅ Task completed successfully!");
+
+    closeCompletionModal();
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error completing task");
+  }
+};
+
 
   if (!selectedTaskFromState) {
     return (
       <div className="w-full mt-30 bg-gray-100 flex justify-center items-center py-10">
         <div className="max-w-md bg-white p-8 rounded-lg shadow-xl text-center">
           <h2 className="text-2xl font-bold text-gray-700 mb-4">No Task Selected</h2>
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
           >
             ← Go Back
@@ -155,8 +266,8 @@ function TaskCloser() {
   return (
     <div className="w-full mt-30 bg-gray-100 flex justify-center py-10">
       <div className="w-full max-w-7xl bg-white shadow-xl rounded-lg p-8">
-        
-        {/* Header */}
+
+        {/* ---- HEADER ---- */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-2">
@@ -168,7 +279,7 @@ function TaskCloser() {
                 <strong>Task Name:</strong> {selectedTaskFromState.taskname}
               </p>
               <p className="text-sm text-gray-700">
-                <strong>Machine:</strong> {selectedTaskFromState.machinename || "-"} | 
+                <strong>Machine:</strong> {selectedTaskFromState.machinename || "-"} |
                 <strong> Asset:</strong> {getAssetName(selectedTaskFromState.physicalasset)}
               </p>
             </div>
@@ -182,146 +293,397 @@ function TaskCloser() {
           </button>
         </div>
 
-        {/* Date Filter & Status Filter */}
+        {/* ---- TABS ---- */}
+        <div className="flex gap-2 mb-6 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab("tasks")}
+            className={`px-6 py-3 font-semibold transition-all ${
+              activeTab === "tasks"
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
+            📋 Task List
+          </button>
+
+          <button
+            onClick={() => setActiveTab("completed")}
+            className={`px-6 py-3 font-semibold transition-all ${
+              activeTab === "completed"
+                ? "border-b-2 border-green-600 text-green-600"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
+            ✅ Completed Tasks ({completedTasks.length})
+          </button>
+        </div>
+
+        {/* ---- DATE FILTER ---- */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-          <div className="flex flex-wrap gap-4 items-center mb-4">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                📅 Filter by Date:
-              </label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            📅 Filter by Date:
+          </label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        {/* ---- TASK LIST TAB ---- */}
+        {activeTab === "tasks" && (
+          <>
+            {/* Status Filter */}
+            <div className="flex gap-2 flex-wrap mb-6">
+              <button
+                onClick={() => setStatusFilter("all")}
+                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                  statusFilter === "all"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                All ({statistics.total})
+              </button>
+
+              <button
+                onClick={() => setStatusFilter("pending")}
+                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                  statusFilter === "pending"
+                    ? "bg-yellow-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                Pending ({statistics.pending})
+              </button>
+
+              <button
+                onClick={() => setStatusFilter("completed")}
+                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                  statusFilter === "completed"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+              >
+                Completed ({statistics.completed})
+              </button>
             </div>
-          </div>
 
-          {/* Status Filter Buttons */}
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setStatusFilter("all")}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                statusFilter === "all" 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              All ({statistics.total})
-            </button>
-            <button
-              onClick={() => setStatusFilter("pending")}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                statusFilter === "pending" 
-                  ? "bg-yellow-600 text-white" 
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Pending ({statistics.pending})
-            </button>
-            <button
-              onClick={() => setStatusFilter("completed")}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                statusFilter === "completed" 
-                  ? "bg-green-600 text-white" 
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Completed ({statistics.completed})
-            </button>
-          </div>
+            {/* Task List Table */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-gray-300 rounded-lg text-sm">
+                <thead className="bg-blue-100">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Task #</th>
+                    <th className="px-4 py-3 text-left">Scheduled Date</th>
+                    <th className="px-4 py-3 text-left">Assigned User</th>
+                    <th className="px-4 py-3 text-center">Status</th>
+                    <th className="px-4 py-3 text-center">Actions</th>
+                  </tr>
+                </thead>
 
-          <div className="mt-3 text-sm text-gray-600">
-            Showing <strong>{filteredTasks.length}</strong> task(s) for{" "}
-            <strong>{new Date(selectedDate).toLocaleDateString()}</strong>
-          </div>
-        </div>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredTasks.map((task) => (
+                    <tr
+                      key={task.taskassignmentid}
+                      className={`hover:bg-gray-50 ${
+                        task.status === "completed" ? "bg-green-50" : ""
+                      }`}
+                    >
+                      <td className="px-4 py-3 font-semibold">Task #{task.task_number}</td>
+                      <td className="px-4 py-3">{task.scheduled_date}</td>
+                      <td className="px-4 py-3">{getUserName(task.assigned_to)}</td>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-blue-100 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold">{statistics.total}</div>
-            <div className="text-sm text-gray-600">Total Tasks</div>
-          </div>
-          <div className="bg-yellow-100 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold">{statistics.pending}</div>
-            <div className="text-sm text-gray-600">Pending</div>
-          </div>
-          <div className="bg-green-100 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold">{statistics.completed}</div>
-            <div className="text-sm text-gray-600">Completed</div>
-          </div>
-        </div>
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            task.status === "completed"
+                              ? "bg-green-200 text-green-800"
+                              : "bg-yellow-200 text-yellow-800"
+                          }`}
+                        >
+                          {task.status || "pending"}
+                        </span>
+                      </td>
 
-        {/* Tasks Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300 rounded-lg text-sm">
-            <thead className="bg-blue-100">
-              <tr>
-                <th className="px-4 py-3 text-left">Task #</th>
-                <th className="px-4 py-3 text-left">Scheduled Date</th>
-                <th className="px-4 py-3 text-left">Assigned User</th>
-                <th className="px-4 py-3 text-center">Status</th>
-                <th className="px-4 py-3 text-center">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-200">
-              {filteredTasks.length > 0 ? (
-                filteredTasks.map((task) => (
-                  <tr 
-                    key={task.taskassignmentid} 
-                    className={`hover:bg-gray-50 ${
-                      task.status === 'completed' ? 'bg-green-50' : ''
-                    }`}
-                  >
-                    <td className="px-4 py-3 font-semibold">
-                      Task #{task.task_number}
-                    </td>
-                    <td className="px-4 py-3">{task.scheduled_date}</td>
-                    <td className="px-4 py-3">{getUserName(task.assigned_user)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        task.status === 'completed' 
-                          ? 'bg-green-200 text-green-800' : 
-                          'bg-yellow-200 text-yellow-800'
-                      }`}>
-                        {task.status || 'pending'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <div className="flex gap-2 justify-center">
-                        {task.status !== 'completed' && (
+                      <td className="px-4 py-3 text-center">
+                        {task.status !== "completed" && (
                           <button
-                            onClick={() => handleMarkCompleted(task.taskassignmentid)}
-                            className="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-xs font-semibold transition-colors"
+                            onClick={() => openCompletionModal(task)}
+                            className="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-xs font-semibold"
                           >
                             ✓ Complete
                           </button>
                         )}
-                        {task.status === 'completed' && (
-                          <button
-                            onClick={() => handleMarkPending(task.taskassignmentid)}
-                            className="bg-yellow-600 text-white px-3 py-1.5 rounded hover:bg-yellow-700 text-xs font-semibold transition-colors"
-                          >
-                            ↻ Pending
-                          </button>
-                        )}
-                      </div>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {filteredTasks.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                        No tasks found for this date.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+       
+       {/* ---- COMPLETED TAB ---- */}
+        {activeTab === "completed" && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full border border-gray-300 rounded-lg text-sm">
+              <thead className="bg-green-100">
+                <tr>
+                  <th className="px-4 py-3 text-left">Task #</th>
+                  <th className="px-4 py-3 text-left">Completed Date</th>
+                  <th className="px-4 py-3 text-left">Assigned User</th>
+                  <th className="px-4 py-3 text-left">Start Time</th>
+                  <th className="px-4 py-3 text-left">Stop Time</th>
+                  <th className="px-4 py-3 text-left">Duration</th>
+                  <th className="px-4 py-3 text-center">Status</th>
+                  <th className="px-4 py-3 text-left">Feedback</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-200">
+                {completedLoading ? (
+                  <tr>
+                    <td colSpan="8" className="px-4 py-8 text-center text-gray-500">
+                      Loading...
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                    No tasks found for the selected date.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : completedTasks.length > 0 ? (
+                  completedTasks.map((task) => (
+                    <tr key={task.id} className="hover:bg-gray-50 bg-green-50">
+                      <td className="px-4 py-3 font-semibold text-blue-700">
+                        Task #{task.task_number}
+                      </td>
+                      <td className="px-4 py-3">{task.completed_date || "N/A"}</td>
+                      <td className="px-4 py-3">{getUserName(task.assigned_user)}</td>
+                      <td className="px-4 py-3 font-medium">
+                        {task.start_time_display || "N/A"}
+                      </td>
+                      <td className="px-4 py-3 font-medium">
+                        {task.stop_time_display || "N/A"}
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-purple-700">
+                        {task.duration || "N/A"}
+                      </td>
+
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            task.is_successful
+                              ? "bg-green-200 text-green-800"
+                              : "bg-red-200 text-red-800"
+                          }`}
+                        >
+                          {task.is_successful ? "✓ Success" : "✗ Failed"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 max-w-xs">
+                        <div 
+                          className="truncate cursor-help" 
+                          title={task.feedback}
+                        >
+                          {task.feedback || "No feedback provided"}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8" className="px-4 py-8 text-center text-gray-500">
+                      No completed tasks found for this date.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ---- COMPLETION MODAL ---- */}
+        {showCompletionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-green-600 text-white px-6 py-4 rounded-t-lg">
+                <h2 className="text-2xl font-bold">✓ Complete Task</h2>
+                <p className="text-sm mt-1 opacity-90">
+                  Task #{selectedTaskForCompletion?.task_number}
+                </p>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Start Time */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    🕐 Maintenance Start Time *
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="time"
+                      value={maintenanceData.startTime}
+                      onChange={(e) =>
+                        setMaintenanceData({
+                          ...maintenanceData,
+                          startTime: e.target.value,
+                        })
+                      }
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <select
+                      value={maintenanceData.startPeriod}
+                      onChange={(e) =>
+                        setMaintenanceData({
+                          ...maintenanceData,
+                          startPeriod: e.target.value,
+                        })
+                      }
+                      className="px-4 py-2 border border-gray-300 rounded-lg"
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* STOP TIME */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    🕐 Maintenance Stop Time *
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="time"
+                      value={maintenanceData.stopTime}
+                      onChange={(e) =>
+                        setMaintenanceData({
+                          ...maintenanceData,
+                          stopTime: e.target.value,
+                        })
+                      }
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <select
+                      value={maintenanceData.stopPeriod}
+                      onChange={(e) =>
+                        setMaintenanceData({
+                          ...maintenanceData,
+                          stopPeriod: e.target.value,
+                        })
+                      }
+                      className="px-4 py-2 border border-gray-300 rounded-lg"
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Duration */}
+                {maintenanceData.startTime &&
+                  maintenanceData.stopTime && (
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <p className="text-sm">
+                        <strong>Duration:</strong>{" "}
+                        {calculateDuration(
+                          maintenanceData.startTime,
+                          maintenanceData.startPeriod,
+                          maintenanceData.stopTime,
+                          maintenanceData.stopPeriod
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                {/* SUCCESS / FAILURE */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    ✓ Task Completion Status *
+                  </label>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMaintenanceData({
+                          ...maintenanceData,
+                          isSuccessful: true,
+                        })
+                      }
+                      className={`flex-1 px-4 py-3 rounded-lg font-semibold ${
+                        maintenanceData.isSuccessful
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      ✓ Successful
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMaintenanceData({
+                          ...maintenanceData,
+                          isSuccessful: false,
+                        })
+                      }
+                      className={`flex-1 px-4 py-3 rounded-lg font-semibold ${
+                        !maintenanceData.isSuccessful
+                          ? "bg-red-600 text-white"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      ✗ Failed
+                    </button>
+                  </div>
+                </div>
+
+                {/* FEEDBACK */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    💬 Feedback *
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={maintenanceData.feedback}
+                    onChange={(e) =>
+                      setMaintenanceData({
+                        ...maintenanceData,
+                        feedback: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              {/* FOOTER */}
+              <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end gap-3">
+                <button
+                  onClick={closeCompletionModal}
+                  className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleSubmitCompletion}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg"
+                >
+                  ✓ Complete Task
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

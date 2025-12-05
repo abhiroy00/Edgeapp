@@ -8,7 +8,15 @@ from .views import (
     BulkCompleteAPIView,
     TypeMasterAPIView,
     StatusMasterAPIView,
-    BulkAssignAPIView
+    BulkAssignAPIView,
+    TaskCloserListCreateView,
+    TaskCloserDetailView,
+    MaintenanceFeedbackListCreateView,
+    MaintenanceFeedbackDetailView,
+    TaskCompletionListView,
+    TaskCompletionDetailView,
+    TaskCompletionStatsView
+
 )
 
 urlpatterns = [
@@ -37,4 +45,21 @@ urlpatterns = [
     path('typemaster/<int:pk>/', TypeMasterAPIView.as_view()),
     path('statusmaster/', StatusMasterAPIView.as_view()),
     path('statusmaster/<int:pk>/', StatusMasterAPIView.as_view()),
+
+     path('task-closer/', TaskCloserListCreateView.as_view(), name='task_closer_list'),
+    path('task-closer/<int:pk>/', TaskCloserDetailView.as_view(), name='task_closer_detail'),
+
+    # MaintenanceFeedback
+    path('maintenance-feedback/', MaintenanceFeedbackListCreateView.as_view(), name='feedback_list'),
+    path('maintenance-feedback/<int:pk>/', MaintenanceFeedbackDetailView.as_view(), name='feedback_detail'),
+
+     # List and Create
+    path('task-completions/', TaskCompletionListView.as_view(), name='task-completion-list'),
+    
+    # Detail, Update, Delete
+    path('task-completions/<int:pk>/', TaskCompletionDetailView.as_view(), name='task-completion-detail'),
+    
+    # Statistics
+    path('task-completions/stats/', TaskCompletionStatsView.as_view(), name='task-completion-stats'),
+
 ]

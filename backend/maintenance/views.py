@@ -1,11 +1,26 @@
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import TaskMaster, TypeMaster, StatusMaster, TaskAssignment
-from .serializer import TaskMasterSerializer, TypeMasterSerializer, StatusMasterSerializer, TaskAssignmentSerializer
+from .models import (TaskMaster, 
+                     TypeMaster, 
+                     StatusMaster, 
+                     TaskAssignment,
+                     TaskCloser,
+                     MaintenanceFeedback,
+                     TaskCompletion
+                     )
+from .serializer import (TaskMasterSerializer,
+                          TypeMasterSerializer,
+                            StatusMasterSerializer, 
+                            TaskAssignmentSerializer,
+                            TaskCloserSerializer,
+                            MaintenanceFeedbackSerializer,
+                            TaskCompletionSerializer
+)
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from datetime import datetime, timedelta
@@ -691,3 +706,265 @@ class StatusMasterAPIView(APIView):
             "success": True,
             "message": f"StatusMaster {statusmaster_id} deleted successfully"
         }, status=status.HTTP_200_OK)
+    
+
+class TaskCloserListCreateView(APIView):
+
+    def get(self, request):
+        task_closers = TaskCloser.objects.all()
+        serializer = TaskCloserSerializer(task_closers, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = TaskCloserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class TaskCloserDetailView(APIView):
+
+    def get_object(self, pk):
+        try:
+            return TaskCloser.objects.get(pk=pk)
+        except TaskCloser.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "TaskCloser not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = TaskCloserSerializer(obj)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "TaskCloser not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TaskCloserSerializer(obj, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "TaskCloser not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TaskCloserSerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "TaskCloser not found"}, status=status.HTTP_404_NOT_FOUND)
+        obj.delete()
+        return Response({"message": "TaskCloser deleted"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class MaintenanceFeedbackListCreateView(APIView):
+
+    def get(self, request):
+        feedbacks = MaintenanceFeedback.objects.all()
+        serializer = MaintenanceFeedbackSerializer(feedbacks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = MaintenanceFeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class MaintenanceFeedbackDetailView(APIView):
+
+    def get_object(self, pk):
+        try:
+            return MaintenanceFeedback.objects.get(pk=pk)
+        except MaintenanceFeedback.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MaintenanceFeedbackSerializer(obj)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MaintenanceFeedbackSerializer(obj, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = MaintenanceFeedbackSerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        obj = self.get_object(pk)
+        if not obj:
+            return Response({"error": "Feedback not found"}, status=status.HTTP_404_NOT_FOUND)
+        obj.delete()
+        return Response({"message": "Feedback deleted"}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+class TaskCompletionListView(APIView):
+    """
+    GET: List all task completions with optional filters
+    POST: Create a new task completion
+    """
+    
+    def get(self, request):
+        # Get query parameters
+        taskmaster = request.query_params.get('taskmaster')
+        completed_date = request.query_params.get('completed_date')
+        task_assignment_id = request.query_params.get('task_assignment_id')
+        assigned_user = request.query_params.get('assigned_user')
+        is_successful = request.query_params.get('is_successful')
+        task_number = request.query_params.get('task_number')
+        asset_id = request.query_params.get('asset_id')
+        
+        # Start with all completions
+        queryset = TaskCompletion.objects.all()
+        
+        # Apply filters
+        if taskmaster:
+            queryset = queryset.filter(taskmaster=taskmaster)
+        if completed_date:
+            queryset = queryset.filter(completed_date=completed_date)
+        if task_assignment_id:
+            queryset = queryset.filter(task_assignment_id=task_assignment_id)
+        if assigned_user:
+            queryset = queryset.filter(assigned_user=assigned_user)
+        if is_successful is not None:
+            is_successful_bool = is_successful.lower() in ['true', '1', 'yes']
+            queryset = queryset.filter(is_successful=is_successful_bool)
+        if task_number:
+            queryset = queryset.filter(task_number=task_number)
+        if asset_id:
+            queryset = queryset.filter(asset_id=asset_id)
+        
+        # Serialize and return
+        serializer = TaskCompletionSerializer(queryset, many=True)
+        
+        return Response({
+            'count': queryset.count(),
+            'results': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = TaskCompletionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TaskCompletionDetailView(APIView):
+    """
+    GET: Retrieve a specific task completion
+    PUT: Update a task completion
+    PATCH: Partially update a task completion
+    DELETE: Delete a task completion
+    """
+    
+    def get_object(self, pk):
+        return get_object_or_404(TaskCompletion, pk=pk)
+    
+    def get(self, request, pk):
+        completion = self.get_object(pk)
+        serializer = TaskCompletionSerializer(completion)
+        return Response(serializer.data)
+    
+    def put(self, request, pk):
+        completion = self.get_object(pk)
+        serializer = TaskCompletionSerializer(completion, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, pk):
+        completion = self.get_object(pk)
+        serializer = TaskCompletionSerializer(completion, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        completion = self.get_object(pk)
+        completion.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TaskCompletionStatsView(APIView):
+    """
+    GET: Retrieve statistics about task completions
+    """
+    
+    def get(self, request):
+        # Get query parameters
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        taskmaster = request.query_params.get('taskmaster')
+        assigned_user = request.query_params.get('assigned_user')
+        
+        # Start with all completions
+        queryset = TaskCompletion.objects.all()
+        
+        # Apply filters
+        if start_date:
+            queryset = queryset.filter(completed_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(completed_date__lte=end_date)
+        if taskmaster:
+            queryset = queryset.filter(taskmaster=taskmaster)
+        if assigned_user:
+            queryset = queryset.filter(assigned_user=assigned_user)
+        
+        # Calculate statistics
+        total = queryset.count()
+        successful = queryset.filter(is_successful=True).count()
+        failed = queryset.filter(is_successful=False).count()
+        
+        success_rate = round((successful / total * 100) if total > 0 else 0, 2)
+        
+        stats = {
+            'total_completions': total,
+            'successful_completions': successful,
+            'failed_completions': failed,
+            'success_rate': success_rate,
+            'filter_applied': {
+                'start_date': start_date,
+                'end_date': end_date,
+                'taskmaster': taskmaster,
+                'assigned_user': assigned_user
+            }
+        }
+        
+        return Response(stats, status=status.HTTP_200_OK)
