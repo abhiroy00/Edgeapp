@@ -59,12 +59,14 @@ export const taskCompletionApi = createApi({
 
     /* =======================================================
        GET ALL COMPLETED TASKS
+       FIXED: Removed completed_date from allowed keys
+       Frontend will handle date filtering
     ======================================================= */
     getCompletedTasks: builder.query({
       query: (params = {}) => {
         const allowedKeys = [
           'taskmaster',
-          'completed_date',
+          // 'completed_date', // REMOVED - Filter on frontend instead
           'task_assignment_id',
           'assigned_user',
           'is_successful',
@@ -121,6 +123,16 @@ export const taskCompletionApi = createApi({
       transformResponse: (res) => res?.data || res,
 
       invalidatesTags: [{ type: 'TaskCompletion', id: 'LIST' }],
+      
+      // Log the response for debugging
+      async onQueryStarted(arg, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          console.log('[Task Completion Created]', data);
+        } catch (err) {
+          console.error('[Task Completion Error]', err);
+        }
+      },
     }),
 
     /* =======================================================

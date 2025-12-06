@@ -832,7 +832,104 @@ class MaintenanceFeedbackDetailView(APIView):
 
 
 
+# Add this debug view to check what data exists
+class TaskCompletionDebugView(APIView):
+    """
+    Debug endpoint to see all task completions without filters
+    GET /api/task-completions/debug/
+    """
+    def get(self, request):
+        taskmaster = request.query_params.get('taskmaster')
+        
+        if taskmaster:
+            completions = TaskCompletion.objects.filter(taskmaster=taskmaster)
+        else:
+            completions = TaskCompletion.objects.all()
+        
+        # Get all unique dates in the system
+        dates = completions.values_list('completed_date', flat=True).distinct()
+        
+        return Response({
+            'total_count': completions.count(),
+            'taskmaster_filter': taskmaster,
+            'unique_completed_dates': list(dates),
+            'all_records': TaskCompletionSerializer(completions, many=True).data
+        })
+
+
 class TaskCompletionListView(APIView):
+    """
+    GET: List all task completions with optional filters
+    POST: Create a new task completion
+    """
+    
+    def get(self, request):
+        # Get query parameters
+        taskmaster = request.query_params.get('taskmaster')
+        completed_date = request.query_params.get('completed_date')
+        task_assignment_id = request.query_params.get('task_assignment_id')
+        assigned_user = request.query_params.get('assigned_user')
+        is_successful = request.query_params.get('is_successful')
+        task_number = request.query_params.get('task_number')
+        asset_id = request.query_params.get('asset_id')
+        
+        # Start with all completions
+        queryset = TaskCompletion.objects.all()
+        
+        # DEBUG: Print what we're searching for
+        print(f"[TASK COMPLETION API] Filters applied:")
+        print(f"  - taskmaster: {taskmaster}")
+        print(f"  - completed_date: {completed_date}")
+        print(f"  - Total records before filter: {queryset.count()}")
+        
+        # Apply filters
+        if taskmaster:
+            queryset = queryset.filter(taskmaster=taskmaster)
+            print(f"  - After taskmaster filter: {queryset.count()} records")
+            
+        if completed_date:
+            queryset = queryset.filter(completed_date=completed_date)
+            print(f"  - After completed_date filter: {queryset.count()} records")
+            
+        if task_assignment_id:
+            queryset = queryset.filter(task_assignment_id=task_assignment_id)
+            
+        if assigned_user:
+            queryset = queryset.filter(assigned_user=assigned_user)
+            
+        if is_successful is not None:
+            is_successful_bool = is_successful.lower() in ['true', '1', 'yes']
+            queryset = queryset.filter(is_successful=is_successful_bool)
+            
+        if task_number:
+            queryset = queryset.filter(task_number=task_number)
+            
+        if asset_id:
+            queryset = queryset.filter(asset_id=asset_id)
+        
+        # DEBUG: Show what dates exist for this taskmaster
+        if taskmaster and queryset.count() == 0:
+            all_for_taskmaster = TaskCompletion.objects.filter(taskmaster=taskmaster)
+            dates = all_for_taskmaster.values_list('completed_date', flat=True).distinct()
+            print(f"  - Available dates for taskmaster {taskmaster}: {list(dates)}")
+        
+        # Serialize and return
+        serializer = TaskCompletionSerializer(queryset, many=True)
+        
+        return Response({
+            'count': queryset.count(),
+            'results': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = TaskCompletionSerializer(data=request.data)
+        if serializer.is_valid():
+            completion = serializer.save()
+            print(f"[TASK COMPLETION] Created: ID={completion.id}, Date={completion.completed_date}")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        print(f"[TASK COMPLETION ERROR] Validation failed: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     """
     GET: List all task completions with optional filters
     POST: Create a new task completion

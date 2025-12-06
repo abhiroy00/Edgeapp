@@ -23,6 +23,8 @@ function TaskCloser() {
   // Modal
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [selectedTaskForCompletion, setSelectedTaskForCompletion] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedCompletionDetails, setSelectedCompletionDetails] = useState(null);
 
   const [maintenanceData, setMaintenanceData] = useState({
     startTime: "",
@@ -56,7 +58,7 @@ function TaskCloser() {
 
   // Mutations
   const [createTaskCompletion] = useCreateTaskCompletionMutation();
-  const [markTaskComplete] = useMarkTaskCompleteMutation(); // NEW
+  const [markTaskComplete] = useMarkTaskCompleteMutation();
 
   // Data extraction
   const AssetInventory = AssetInventoryData?.results || [];
@@ -149,7 +151,7 @@ function TaskCloser() {
     };
   }, [allTasks, selectedDate]);
 
-  // Open Modal
+  // Open Completion Modal
   const openCompletionModal = (task) => {
     setSelectedTaskForCompletion(task);
     setMaintenanceData({
@@ -168,73 +170,79 @@ function TaskCloser() {
     setSelectedTaskForCompletion(null);
   };
 
+  // Open Details Modal
+  const openDetailsModal = (completionTask) => {
+    setSelectedCompletionDetails(completionTask);
+    setShowDetailsModal(true);
+  };
+
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedCompletionDetails(null);
+  };
+
   // Submit Completion
   const handleSubmitCompletion = async () => {
-  if (!maintenanceData.startTime || !maintenanceData.stopTime) {
-    alert("⚠️ Enter start and stop times");
-    return;
-  }
+    if (!maintenanceData.startTime || !maintenanceData.stopTime) {
+      alert("⚠️ Enter start and stop times");
+      return;
+    }
 
-  if (!maintenanceData.feedback.trim()) {
-    alert("⚠️ Feedback required");
-    return;
-  }
+    if (!maintenanceData.feedback.trim()) {
+      alert("⚠️ Feedback required");
+      return;
+    }
 
-  const start24 = convertTo24Hour(
-    maintenanceData.startTime,
-    maintenanceData.startPeriod
-  );
+    const start24 = convertTo24Hour(
+      maintenanceData.startTime,
+      maintenanceData.startPeriod
+    );
 
-  const stop24 = convertTo24Hour(
-    maintenanceData.stopTime,
-    maintenanceData.stopPeriod
-  );
+    const stop24 = convertTo24Hour(
+      maintenanceData.stopTime,
+      maintenanceData.stopPeriod
+    );
 
-  try {
-    /* Step 1: Create task completion entry */
-    await createTaskCompletion({
-      task_assignment_id: selectedTaskForCompletion.taskassignmentid,
-      task_number: selectedTaskForCompletion.task_number,
-      taskmaster: selectedTaskFromState.taskmaster,
-      taskname: selectedTaskFromState.taskname,
-      asset_id: selectedTaskFromState.physicalasset,
-      assigned_user: selectedTaskForCompletion.assigned_to,
-      scheduled_date: selectedTaskForCompletion.scheduled_date,
-      completed_date: new Date().toISOString().split("T")[0],
-      maintenance_start_time: start24,
-      maintenance_stop_time: stop24,
-      start_time_display: `${maintenanceData.startTime} ${maintenanceData.startPeriod}`,
-      stop_time_display: `${maintenanceData.stopTime} ${maintenanceData.stopPeriod}`,
-      duration: calculateDuration(
-        maintenanceData.startTime,
-        maintenanceData.startPeriod,
-        maintenanceData.stopTime,
-        maintenanceData.stopPeriod
-      ),
-      is_successful: maintenanceData.isSuccessful,
-      feedback: maintenanceData.feedback,
-    }).unwrap();
+    try {
+      await createTaskCompletion({
+        task_assignment_id: selectedTaskForCompletion.taskassignmentid,
+        task_number: selectedTaskForCompletion.task_number,
+        taskmaster: selectedTaskFromState.taskmaster,
+        taskname: selectedTaskFromState.taskname,
+        asset_id: selectedTaskFromState.physicalasset,
+        assigned_user: selectedTaskForCompletion.assigned_to,
+        scheduled_date: selectedTaskForCompletion.scheduled_date,
+        completed_date: new Date().toISOString().split("T")[0],
+        maintenance_start_time: start24,
+        maintenance_stop_time: stop24,
+        start_time_display: `${maintenanceData.startTime} ${maintenanceData.startPeriod}`,
+        stop_time_display: `${maintenanceData.stopTime} ${maintenanceData.stopPeriod}`,
+        duration: calculateDuration(
+          maintenanceData.startTime,
+          maintenanceData.startPeriod,
+          maintenanceData.stopTime,
+          maintenanceData.stopPeriod
+        ),
+        is_successful: maintenanceData.isSuccessful,
+        feedback: maintenanceData.feedback,
+      }).unwrap();
 
-    /* Step 2: Mark assignment as completed */
-    await markTaskComplete({
-      assignmentId: selectedTaskForCompletion.taskassignmentid,
-      notes: maintenanceData.feedback,
-    }).unwrap();
+      await markTaskComplete({
+        assignmentId: selectedTaskForCompletion.taskassignmentid,
+        notes: maintenanceData.feedback,
+      }).unwrap();
 
-    /* Step 3: Refresh tables */
-    await refetchTaskList();
-    await refetchCompleted();
+      await refetchTaskList();
+      await refetchCompleted();
 
-    alert("✅ Task completed successfully!");
+      alert("✅ Task completed successfully!");
+      closeCompletionModal();
 
-    closeCompletionModal();
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Error completing task");
-  }
-};
-
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error completing task");
+    }
+  };
 
   if (!selectedTaskFromState) {
     return (
@@ -267,7 +275,7 @@ function TaskCloser() {
     <div className="w-full mt-30 bg-gray-100 flex justify-center py-10">
       <div className="w-full max-w-7xl bg-white shadow-xl rounded-lg p-8">
 
-        {/* ---- HEADER ---- */}
+        {/* HEADER */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-[oklch(0.53_0.27_303.85)] mb-2">
@@ -293,7 +301,7 @@ function TaskCloser() {
           </button>
         </div>
 
-        {/* ---- TABS ---- */}
+        {/* TABS */}
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           <button
             onClick={() => setActiveTab("tasks")}
@@ -318,7 +326,7 @@ function TaskCloser() {
           </button>
         </div>
 
-        {/* ---- DATE FILTER ---- */}
+        {/* DATE FILTER */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             📅 Filter by Date:
@@ -331,7 +339,7 @@ function TaskCloser() {
           />
         </div>
 
-        {/* ---- TASK LIST TAB ---- */}
+        {/* TASK LIST TAB */}
         {activeTab === "tasks" && (
           <>
             {/* Status Filter */}
@@ -433,8 +441,7 @@ function TaskCloser() {
           </>
         )}
 
-       
-       {/* ---- COMPLETED TAB ---- */}
+        {/* COMPLETED TAB */}
         {activeTab === "completed" && (
           <div className="overflow-x-auto">
             <table className="min-w-full border border-gray-300 rounded-lg text-sm">
@@ -443,11 +450,13 @@ function TaskCloser() {
                   <th className="px-4 py-3 text-left">Task #</th>
                   <th className="px-4 py-3 text-left">Completed Date</th>
                   <th className="px-4 py-3 text-left">Assigned User</th>
-                  <th className="px-4 py-3 text-left">Start Time</th>
-                  <th className="px-4 py-3 text-left">Stop Time</th>
+                  <th className="px-4 py-3 text-left">Start</th>
+                  <th className="px-4 py-3 text-left">Stop</th>
                   <th className="px-4 py-3 text-left">Duration</th>
                   <th className="px-4 py-3 text-center">Status</th>
-                  <th className="px-4 py-3 text-left">Feedback</th>
+                   <th className="px-4 py-3 text-center">feedback</th>
+                  
+                  <th className="px-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>
 
@@ -460,21 +469,13 @@ function TaskCloser() {
                   </tr>
                 ) : completedTasks.length > 0 ? (
                   completedTasks.map((task) => (
-                    <tr key={task.id} className="hover:bg-gray-50 bg-green-50">
-                      <td className="px-4 py-3 font-semibold text-blue-700">
-                        Task #{task.task_number}
-                      </td>
-                      <td className="px-4 py-3">{task.completed_date || "N/A"}</td>
+                    <tr key={task.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-semibold">Task #{task.task_number}</td>
+                      <td className="px-4 py-3">{task.completed_date}</td>
                       <td className="px-4 py-3">{getUserName(task.assigned_user)}</td>
-                      <td className="px-4 py-3 font-medium">
-                        {task.start_time_display || "N/A"}
-                      </td>
-                      <td className="px-4 py-3 font-medium">
-                        {task.stop_time_display || "N/A"}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-purple-700">
-                        {task.duration || "N/A"}
-                      </td>
+                      <td className="px-4 py-3">{task.start_time_display}</td>
+                      <td className="px-4 py-3">{task.stop_time_display}</td>
+                      <td className="px-4 py-3 font-semibold">{task.duration}</td>
 
                       <td className="px-4 py-3 text-center">
                         <span
@@ -487,21 +488,22 @@ function TaskCloser() {
                           {task.is_successful ? "✓ Success" : "✗ Failed"}
                         </span>
                       </td>
+                       <td className="px-4 py-3 font-semibold">{task.feedback}</td>
 
-                      <td className="px-4 py-3 max-w-xs">
-                        <div 
-                          className="truncate cursor-help" 
-                          title={task.feedback}
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => openDetailsModal(task)}
+                          className="bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 text-xs font-semibold"
                         >
-                          {task.feedback || "No feedback provided"}
-                        </div>
+                          👁️ View Details
+                        </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan="8" className="px-4 py-8 text-center text-gray-500">
-                      No completed tasks found for this date.
+                      No completed tasks.
                     </td>
                   </tr>
                 )}
@@ -510,7 +512,7 @@ function TaskCloser() {
           </div>
         )}
 
-        {/* ---- COMPLETION MODAL ---- */}
+        {/* COMPLETION MODAL */}
         {showCompletionModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -555,7 +557,7 @@ function TaskCloser() {
                   </div>
                 </div>
 
-                {/* STOP TIME */}
+                {/* Stop Time */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     🕐 Maintenance Stop Time *
@@ -589,22 +591,21 @@ function TaskCloser() {
                 </div>
 
                 {/* Duration */}
-                {maintenanceData.startTime &&
-                  maintenanceData.stopTime && (
-                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      <p className="text-sm">
-                        <strong>Duration:</strong>{" "}
-                        {calculateDuration(
-                          maintenanceData.startTime,
-                          maintenanceData.startPeriod,
-                          maintenanceData.stopTime,
-                          maintenanceData.stopPeriod
-                        )}
-                      </p>
-                    </div>
-                  )}
+                {maintenanceData.startTime && maintenanceData.stopTime && (
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                    <p className="text-sm">
+                      <strong>Duration:</strong>{" "}
+                      {calculateDuration(
+                        maintenanceData.startTime,
+                        maintenanceData.startPeriod,
+                        maintenanceData.stopTime,
+                        maintenanceData.stopPeriod
+                      )}
+                    </p>
+                  </div>
+                )}
 
-                {/* SUCCESS / FAILURE */}
+                {/* Success/Failure */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
                     ✓ Task Completion Status *
@@ -646,7 +647,7 @@ function TaskCloser() {
                   </div>
                 </div>
 
-                {/* FEEDBACK */}
+                {/* Feedback */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     💬 Feedback *
@@ -665,7 +666,7 @@ function TaskCloser() {
                 </div>
               </div>
 
-              {/* FOOTER */}
+              {/* Footer */}
               <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end gap-3">
                 <button
                   onClick={closeCompletionModal}
@@ -685,9 +686,101 @@ function TaskCloser() {
           </div>
         )}
 
+        {/* DETAILS MODAL */}
+        {showDetailsModal && selectedCompletionDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg">
+                <h2 className="text-2xl font-bold">📋 Task Completion Details</h2>
+                <p className="text-sm mt-1 opacity-90">
+                  Task #{selectedCompletionDetails.task_number}
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                {/* Task Information */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 className="font-bold text-lg mb-3 text-gray-800">Task Information</h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-semibold text-gray-700">Start Time:</span>
+                      <p className="text-gray-900 text-lg">{selectedCompletionDetails.start_time_display}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700">Stop Time:</span>
+                      <p className="text-gray-900 text-lg">{selectedCompletionDetails.stop_time_display}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700">Duration:</span>
+                      <p className="text-gray-900 text-lg font-bold">{selectedCompletionDetails.duration}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className={`p-4 rounded-lg border ${
+                  selectedCompletionDetails.is_successful 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}>
+                  <h3 className="font-bold text-lg mb-2 text-gray-800">Completion Status</h3>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-4 py-2 rounded-full text-sm font-bold ${
+                      selectedCompletionDetails.is_successful
+                        ? "bg-green-200 text-green-800"
+                        : "bg-red-200 text-red-800"
+                    }`}>
+                      {selectedCompletionDetails.is_successful ? "✓ Successful" : "✗ Failed"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Feedback */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 className="font-bold text-lg mb-2 text-gray-800">Feedback / Notes</h3>
+                  <p className="text-gray-900 whitespace-pre-wrap">{selectedCompletionDetails.feedback}</p>
+                </div>
+
+                {/* Metadata */}
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 className="font-bold text-lg mb-3 text-gray-800">Record Information</h3>
+                  <div className="grid grid-cols-2 gap-3 text-xs text-gray-600">
+                    <div>
+                      <span className="font-semibold">Created:</span>
+                      <p>{new Date(selectedCompletionDetails.created_at).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Updated:</span>
+                      <p>{new Date(selectedCompletionDetails.updated_at).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Task Assignment ID:</span>
+                      <p>{selectedCompletionDetails.task_assignment_id}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold">Completion Record ID:</span>
+                      <p>{selectedCompletionDetails.id}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end">
+                <button
+                  onClick={closeDetailsModal}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
 
-export default TaskCloser;
+export default TaskCloser

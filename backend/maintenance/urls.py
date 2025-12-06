@@ -15,7 +15,8 @@ from .views import (
     MaintenanceFeedbackDetailView,
     TaskCompletionListView,
     TaskCompletionDetailView,
-    TaskCompletionStatsView
+    TaskCompletionStatsView,
+    TaskCompletionDebugView
 
 )
 
@@ -55,11 +56,8 @@ urlpatterns = [
 
      # List and Create
     path('task-completions/', TaskCompletionListView.as_view(), name='task-completion-list'),
-    
-    # Detail, Update, Delete
     path('task-completions/<int:pk>/', TaskCompletionDetailView.as_view(), name='task-completion-detail'),
-    
-    # Statistics
     path('task-completions/stats/', TaskCompletionStatsView.as_view(), name='task-completion-stats'),
+    path('task-completions/debug/', TaskCompletionDebugView.as_view()),
 
 ]
