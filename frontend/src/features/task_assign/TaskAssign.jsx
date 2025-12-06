@@ -33,6 +33,16 @@ function TaskAssign() {
   const users = usersData?.results || usersData || [];
   const taskList = taskListData?.results || taskListData?.assignments || [];
 
+  // DEBUG: Log users data to see structure
+  console.log('[DEBUG] Users data:', users);
+  console.log('[DEBUG] First user:', users[0]);
+  
+  // CRITICAL FIX: Normalize users to have 'id' field for consistent access
+  const normalizedUsers = users.map(user => ({
+    ...user,
+    id: user.id || user.userid  // Ensure every user has 'id' field
+  }));
+
   const getAssetName = (assetId) => {
     const asset = AssetInventory.find((item) =>
       item.assetinventoryid === assetId || 
@@ -61,9 +71,33 @@ function TaskAssign() {
 
   // Handle user assignment for a specific task
   const handleUserChange = (taskId, userId) => {
+    console.log('[DEBUG] Raw onChange value:', { taskId, userId, type: typeof userId });
+    
+    // Check if userId is somehow a username
+    if (isNaN(userId)) {
+      console.error('[ERROR] Received non-numeric userId:', userId);
+      console.log('[ERROR] This means the <option value> is wrong!');
+      console.log('[ERROR] Users array:', normalizedUsers);
+      alert('❌ Error: Invalid user selection. Please check console.');
+      return;
+    }
+    
+    // CRITICAL FIX: Ensure userId is converted to integer
+    const numericUserId = userId ? parseInt(userId, 10) : null;
+    
+    // Debug info
+    const selectedUser = normalizedUsers.find(u => u.id === numericUserId);
+    console.log('[DEBUG] User selected:', {
+      taskId,
+      userId,
+      numericUserId,
+      userName: selectedUser?.username,
+      selectedUser
+    });
+    
     setAssignments(prev => ({
       ...prev,
-      [taskId]: userId
+      [taskId]: numericUserId
     }));
   };
 
@@ -73,17 +107,32 @@ function TaskAssign() {
       .filter(task => assignments[task.taskassignmentid])
       .map(task => ({
         taskassignmentid: task.taskassignmentid,
-        assigned_user: assignments[task.taskassignmentid]
+        assigned_user: parseInt(assignments[task.taskassignmentid], 10) // ENSURE INTEGER
       }));
+
+    console.log('[DEBUG] Assignments to save:', assignmentsToSave);
 
     if (assignmentsToSave.length === 0) {
       alert("⚠️ Please assign at least one task to a user");
       return;
     }
 
+    // Validate all user IDs are numbers
+    const hasInvalidUserId = assignmentsToSave.some(a => 
+      isNaN(a.assigned_user) || typeof a.assigned_user !== 'number'
+    );
+
+    if (hasInvalidUserId) {
+      alert("❌ Invalid user selection. Please refresh and try again.");
+      console.error('[ERROR] Invalid user IDs:', assignmentsToSave);
+      return;
+    }
+
     setIsSaving(true);
     try {
-      await assignTasks({ assignments: assignmentsToSave }).unwrap();
+      const result = await assignTasks({ assignments: assignmentsToSave }).unwrap();
+      console.log('[SUCCESS] Assignment result:', result);
+      
       alert(`✅ Successfully assigned ${assignmentsToSave.length} task(s)`);
       
       // Navigate to TaskCloser page with the selected date
@@ -94,8 +143,8 @@ function TaskAssign() {
         }
       });
     } catch (error) {
-      console.error("Error assigning tasks:", error);
-      alert("❌ Error assigning tasks. Please try again.");
+      console.error("[ERROR] Assigning tasks:", error);
+      alert(`❌ Error: ${error?.data?.detail || 'Failed to assign tasks'}`);
       setIsSaving(false);
     }
   };
@@ -104,9 +153,14 @@ function TaskAssign() {
   const handleAssignAllToUser = (userId) => {
     if (!userId) return;
     
+    // CRITICAL FIX: Ensure userId is converted to integer
+    const numericUserId = parseInt(userId, 10);
+    
+    console.log('[DEBUG] Assign all to user:', { userId, numericUserId });
+    
     const newAssignments = {};
     filteredTasks.forEach(task => {
-      newAssignments[task.taskassignmentid] = userId;
+      newAssignments[task.taskassignmentid] = numericUserId;
     });
     setAssignments(newAssignments);
   };
@@ -193,11 +247,16 @@ function TaskAssign() {
                 value=""
               >
                 <option value="">-- Select User --</option>
-                {users.map((user) => (
-                  <option key={user.id || user.userid} value={user.id}>
-                    {user.username || user.name || `User #${user.id}`}
-                  </option>
-                ))}
+                {normalizedUsers.map((user) => {
+                  const userId = user.id;  // Now guaranteed to exist
+                  const userName = user.username || user.name || `User #${userId}`;
+                  
+                  return (
+                    <option key={userId} value={userId}>
+                      {userName}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
@@ -239,9 +298,12 @@ function TaskAssign() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      {task.assigned_user 
-                        ? users.find(u => u.id === task.assigned_user)?.username || `User #${task.assigned_user}`
-                        : "Not assigned"}
+                      {(() => {
+                        const userId = task.assigned_to || task.assigned_user;
+                        if (!userId) return "Not assigned";
+                        const user = normalizedUsers.find(u => u.id === userId);
+                        return user ? user.username : `User #${userId}`;
+                      })()}
                     </td>
                     <td className="px-4 py-3">
                       <select
@@ -251,12 +313,23 @@ function TaskAssign() {
                         disabled={task.status === 'completed'}
                       >
                         <option value="">-- Select User --</option>
-                        {users.map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.username || user.name || `User #${user.id}`}
-                          </option>
-                        ))}
+                        {normalizedUsers.map((user) => {
+                          const userId = user.id;  // Guaranteed to exist now
+                          const userName = user.username || `User #${userId}`;
+                          
+                          return (
+                            <option key={userId} value={userId}>
+                              {userName}
+                            </option>
+                          );
+                        })}
                       </select>
+                      {/* Debug: Show what's selected */}
+                      {assignments[task.taskassignmentid] && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Selected ID: {assignments[task.taskassignmentid]}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))

@@ -56,9 +56,11 @@ class BulkAssignAPIView(APIView):
                     
                     try:
                         task_assignment = TaskAssignment.objects.get(taskassignmentid=task_id)
-                        task_assignment.assigned_user_id = user_id
+                        task_assignment.assigned_to_id = user_id
                         task_assignment.save()
                         updated_count += 1
+                        
+                        print(f"[BULK ASSIGN] Task {task_id} assigned to user {user_id}")
                         
                     except TaskAssignment.DoesNotExist:
                         errors.append({"error": "Not found", "taskassignmentid": task_id})
@@ -835,28 +837,41 @@ class MaintenanceFeedbackDetailView(APIView):
 # Add this debug view to check what data exists
 class TaskCompletionDebugView(APIView):
     """
-    Debug endpoint to see all task completions without filters
-    GET /api/task-completions/debug/
+    Debug view to check task assignment data
+    GET /api/task-assignments/debug/?taskassignmentid=705
     """
     def get(self, request):
-        taskmaster = request.query_params.get('taskmaster')
+        task_id = request.query_params.get('taskassignmentid')
         
-        if taskmaster:
-            completions = TaskCompletion.objects.filter(taskmaster=taskmaster)
-        else:
-            completions = TaskCompletion.objects.all()
+        if task_id:
+            try:
+                task = TaskAssignment.objects.get(taskassignmentid=task_id)
+                
+                return Response({
+                    "taskassignmentid": task.taskassignmentid,
+                    "task_number": task.task_number,
+                    "scheduled_date": task.scheduled_date,
+                    "status": task.status,
+                    "assigned_to_id": task.assigned_to_id,
+                    "assigned_to_type": type(task.assigned_to_id).__name__,
+                    "assigned_to_exists": task.assigned_to is not None if task.assigned_to_id else False,
+                    "taskmaster_id": task.taskmaster_id,
+                })
+            except TaskAssignment.DoesNotExist:
+                return Response({
+                    "error": "Task assignment not found",
+                    "taskassignmentid": task_id
+                }, status=status.HTTP_404_NOT_FOUND)
         
-        # Get all unique dates in the system
-        dates = completions.values_list('completed_date', flat=True).distinct()
+        # Show all task assignments
+        tasks = TaskAssignment.objects.all()[:10]
+        serializer = TaskAssignmentSerializer(tasks, many=True)
         
         return Response({
-            'total_count': completions.count(),
-            'taskmaster_filter': taskmaster,
-            'unique_completed_dates': list(dates),
-            'all_records': TaskCompletionSerializer(completions, many=True).data
+            "count": TaskAssignment.objects.count(),
+            "showing": "First 10 records",
+            "results": serializer.data
         })
-
-
 class TaskCompletionListView(APIView):
     """
     GET: List all task completions with optional filters
